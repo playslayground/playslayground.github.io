@@ -239,3 +239,7 @@ html:lang(ru) #ui *:not(h1),html:lang(ja) #ui *:not(h1),html:lang(tr) #ui *:not(
 .heroInfo .d b{color:var(--gold);font-weight:400}
 .heroInfo .d b.tr{color:var(--teal)}
 @media (max-width:700px){.modes{grid-template-columns:1fr}.mode{min-height:0;padding:calc(var(--u)*3)}#inv{grid-template-columns:repeat(6,auto)}}
+
+.heroInfo .kit{display:flex;flex-wrap:wrap;gap:calc(var(--u)*2);align-items:center;margin-top:var(--u);font-size:calc(var(--u)*4);color:var(--dim)}
+.heroInfo .kit .kw{display:inline-flex;align-items:center;gap:1px;background:#161216;padding:0 var(--u);box-shadow:inset 0 0 0 1px var(--brick)}
+.heroInfo .kit .pow{color:var(--gold);font-weight:400;margin-left:auto}

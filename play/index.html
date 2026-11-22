@@ -195,6 +195,6 @@
 <script src="assets/atlas.js"></script>
 <script src="i18n.js"></script>
 <script src="game.js"></script>
-<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));</script>
+<script>if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller,t0=Date.now();let once=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!once&&Date.now()-t0<15000){once=1;location.reload();}});addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));}</script>
 </body>
 </html>

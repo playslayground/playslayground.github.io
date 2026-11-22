@@ -9,6 +9,8 @@
   --f:'Galmuri11',monospace;
 }
 @media (max-width:700px),(max-height:520px){:root{--u:2px}}
+@media (min-width:1600px) and (min-height:860px){:root{--u:4px}}
+@media (min-width:2400px) and (min-height:1250px){:root{--u:5px}}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:#161216;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 canvas{image-rendering:pixelated;image-rendering:crisp-edges}

@@ -173,3 +173,34 @@ input[type=range]::-moz-range-thumb{width:calc(var(--u)*4);height:calc(var(--u)*
 #bDouble:hover{background:var(--green);color:var(--ink)}
 #ctrlHint{position:absolute;left:0;right:0;bottom:12%;text-align:center;color:var(--ink);text-shadow:var(--u) var(--u) 0 #111;opacity:0;transition:opacity .4s;padding:0 4vw}
 #ctrlHint.show{opacity:1}
+
+/* v2: frenzy, dash, quests, languages, torment */
+#fzbar{position:absolute;left:0;right:0;top:calc(var(--u)*6);height:var(--u);background:rgba(17,17,17,.55)}
+#fzfill{display:block;height:100%;width:0;background:var(--gold)}
+#fzfill.on{background:var(--red)}
+#dashBtn{display:none;position:absolute;right:calc(var(--u)*8);bottom:calc(var(--u)*16);width:calc(var(--u)*24);height:calc(var(--u)*24);pointer-events:auto;align-items:center;justify-content:center;background:rgba(17,17,17,.6);box-shadow:inset 0 0 0 var(--u) var(--brick);color:var(--ink);font-size:calc(var(--u)*10);line-height:1;padding-bottom:calc(var(--u)*2)}
+#dashBtn.cd{opacity:.35}
+@media (pointer:coarse){#dashBtn{display:flex}}
+.quests{display:flex;flex-direction:column;gap:calc(var(--u)*2);max-height:58vh;overflow:auto;margin:calc(var(--u)*2) 0;padding:var(--u);text-align:left}
+.quest{display:grid;grid-template-columns:1fr auto auto;gap:calc(var(--u)*5);align-items:center;background:#222;box-shadow:inset 0 0 0 var(--u) var(--brick);padding:calc(var(--u)*2) calc(var(--u)*4)}
+.quest .p{color:var(--teal);font-size:calc(var(--u)*4)}
+.quest .r{color:var(--gold);display:flex;gap:var(--u);align-items:center;min-width:calc(var(--u)*22);justify-content:flex-end}
+.quest.done{opacity:.5}
+.quest.done .p{color:var(--dim)}
+.langs{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--u)*48),1fr));gap:calc(var(--u)*2);margin:calc(var(--u)*2) 0;padding:var(--u)}
+.langs .btn{margin:var(--u);min-width:0}
+.langs .btn.on{color:var(--gold);background:#2f2618;box-shadow:inset 0 0 0 var(--u) var(--gold),0 0 0 var(--u) #111}
+.tor{display:flex;gap:calc(var(--u)*3);align-items:center;margin-top:var(--u)}
+.tbtn{display:inline-flex;align-items:center;justify-content:center;width:calc(var(--u)*9);height:calc(var(--u)*8);background:var(--brick);box-shadow:0 0 0 var(--u) #111;color:var(--ink);cursor:pointer}
+.tbtn:hover{background:var(--mud);color:var(--gold)}
+.tlab{color:var(--red);min-width:calc(var(--u)*30);text-align:center}
+.tord{color:var(--dim);font-size:calc(var(--u)*4)}
+#eQuests div{color:var(--gold)}
+#sStage .panel,#sHero .panel{max-height:96vh}
+/* languages whose glyphs exist only in the regular face */
+html:lang(ru) #ui *:not(h1),html:lang(ja) #ui *:not(h1),html:lang(tr) #ui *:not(h1),html:lang(pl) #ui *:not(h1){font-weight:400}
+.stages{max-height:calc(100vh - var(--u)*58);overflow-y:auto;padding:var(--u)}
+.stage{grid-template-columns:calc(var(--u)*22) 1fr;padding:calc(var(--u)*2)}
+.stage .sic{width:calc(var(--u)*22);height:calc(var(--u)*22)}
+.stage .t{font-size:calc(var(--u)*5)}
+.stage .d,.stage .m,.stage .r{font-size:calc(var(--u)*4);line-height:1.35}

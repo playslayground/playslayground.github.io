@@ -18,9 +18,18 @@ const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = (Math.
 
 // ------------------------------------------------------------- save data
 const SAVE_KEY = 'underkeep.v1';
-const defSave = () => ({ coins: 0, shop: {}, heroes: { knight: true }, hero: 'knight', best: { time: 0, kills: 0, level: 0 }, wins: 0, runs: 0, maps: {}, stage: 'keep',
-  settings: { music: 55, sfx: 80, lang: 'en', shake: 1, nums: 1 } });
-const parseSave = raw => { let o; try { o = Object.assign(defSave(), JSON.parse(raw || '{}')); } catch (e) { o = defSave(); } o.settings = Object.assign(defSave().settings, o.settings || {}); return o; };
+const I18 = window.I18N;
+const detectLang = () => { try { for (const l of (navigator.languages || [navigator.language || 'en'])) { const k = String(l).toLowerCase().slice(0, 2); if (I18[k]) return k; } } catch (e) {} return 'en'; };
+const defSave = () => ({ coins: 0, shop: {}, heroes: { knight: true }, hero: 'knight', best: { time: 0, kills: 0, level: 0 }, wins: 0, runs: 0, maps: {}, stage: 'keep', tor: {}, q: {},
+  stats: { kills: 0, chests: 0, bosses: 0, evos: 0, shrines: 0, torMax: 0 },
+  settings: { music: 55, sfx: 80, lang: detectLang(), shake: 1, nums: 1 } });
+const parseSave = raw => {
+  let o; try { o = Object.assign(defSave(), JSON.parse(raw || '{}')); } catch (e) { o = defSave(); }
+  o.settings = Object.assign(defSave().settings, o.settings || {}); o.stats = Object.assign(defSave().stats, o.stats || {});
+  if (!I18[o.settings.lang]) o.settings.lang = 'en';
+  if (!o.tor) o.tor = {}; if (!o.q) o.q = {};
+  return o;
+};
 const cloudData = () => { try { return ADS.ready && ADS.sdk.data ? ADS.sdk.data : null; } catch (e) { return null; } };
 let SV;
 try { SV = parseSave(localStorage.getItem(SAVE_KEY)); } catch (e) { SV = defSave(); }
@@ -42,99 +51,90 @@ function loadCloudSave() {
 const shopLv = k => SV.shop[k] || 0;
 
 // ------------------------------------------------------------- text
-const TX = {
-  en: {
-    sub: '', start: 'Start', armory: 'Armory', settings: 'Settings', credits: 'Credits',
-    chooseHero: 'Choose a hero', back: 'Back', go: 'Descend', refund: 'Refund all', music: 'Music', sfx: 'Sound', lang: 'Language',
-    shake: 'Screen shake', numbers: 'Damage numbers', on: 'On', off: 'Off', paused: 'Paused', resume: 'Resume', giveUp: 'Give up',
-    levelUp: 'Level up!', take: 'Take', survived: 'Survived', level: 'Level', killed: 'Killed', earned: 'Coins', title: 'Title', again: 'Again',
-    cArt: 'Art', cMusic: 'Music & sound', cFont: 'Font', dead: 'You fell', win: 'Cleared', newRecord: 'New record',
-    reroll: n => `Reroll (${n})`, best: t => `Best ${t}`, unlock: 'Unlock', unlockCost: (c, h) => h >= c ? `Locked — click to unlock for ${c} coins` : `Locked — needs ${c} coins (you have ${h})`, coinsN: n => `${n} coins`, lv: n => `Lv ${n}`, isNew: 'NEW', evolve: 'EVOLVE', max: 'MAX',
-    pairsW: x => `Evolves at max level if you hold ${x}`, pairsP: x => `Needed to evolve ${x}`, start_w: 'Starts with', gold: n => `+${n} coins`, heal: 'Roast chicken', healD: 'Restore 30 health.',
-    goldBag: 'Coin pouch', goldBagD: 'Take 25 coins.',
-    swarm: 'Swarm!', ctrlKeys: 'Move: WASD / arrow keys · Attacks are automatic', ctrlTouch: 'Drag to move · Attacks are automatic', adRevive: 'Watch ad to revive', adDouble: n => `Watch ad: coins x2 (+${n})`, adReroll: 'Watch ad to reroll', adFail: 'No ad available right now', adPreview: 'Ad slot — a real ad plays here in the CrazyGames build', rush: 'Gold rush! Coins x2', unlocked: x => `${x} unlocked`, mimic: 'Mimic!', chooseStage: 'Choose a place', lockedBy: x => `Clear ${x} to open`, clearedMark: 'Cleared', bestOn: t => `Best ${t}`, noRecord: 'Not yet attempted', stageMods: (h, g) => `Enemies ×${h} · Coins ×${g}`, bossIn: 'Boss!', revived: 'Revived!', cleared: 'Clear!',
-    evolved: 'evolved!', chestGot: 'From the chest', weapon: 'Weapon', dmg: 'Damage'
-  },
-  ko: {
-    sub: '', start: '시작', armory: '무기고', settings: '설정', credits: '크레딧',
-    chooseHero: '영웅 선택', back: '뒤로', go: '입장', refund: '전부 환불', music: '음악', sfx: '효과음', lang: '언어',
-    shake: '화면 흔들림', numbers: '피해 숫자', on: '켬', off: '끔', paused: '일시정지', resume: '계속', giveUp: '포기',
-    levelUp: '레벨 업!', take: '받기', survived: '생존', level: '레벨', killed: '처치', earned: '코인', title: '타이틀', again: '다시',
-    cArt: '그래픽', cMusic: '음악·효과음', cFont: '글꼴', dead: '쓰러졌다', win: '클리어', newRecord: '신기록',
-    reroll: n => `다시 뽑기 (${n})`, best: t => `최고 ${t}`, unlock: '해금', unlockCost: (c, h) => h >= c ? `잠김 — 누르면 코인 ${c}개로 해금` : `잠김 — 해금하려면 코인 ${c}개 필요 (보유 ${h}개)`, coinsN: n => `코인 ${n}`, lv: n => `Lv ${n}`, isNew: '신규', evolve: '진화', max: 'MAX',
-    pairsW: x => `최대 레벨 + ${x} 보유 시 진화`, pairsP: x => `${x} 진화에 필요`, start_w: '시작 무기', gold: n => `코인 +${n}`, heal: '통닭', healD: '체력 30 회복.',
-    goldBag: '코인 주머니', goldBagD: '코인 25개 획득.',
-    swarm: '포위!', ctrlKeys: '이동: WASD / 방향키 · 공격은 자동', ctrlTouch: '드래그해서 이동 · 공격은 자동', adRevive: '광고 보고 부활', adDouble: n => `광고 보고 코인 2배 (+${n})`, adReroll: '광고 보고 다시 뽑기', adFail: '지금은 볼 수 있는 광고가 없어요', adPreview: '광고 자리 — CrazyGames 버전에서는 여기서 실제 광고가 나와요', rush: '황금 러시! 코인 2배', unlocked: x => `${x} 해금`, mimic: '미믹!', chooseStage: '장소 선택', lockedBy: x => `${x} 클리어 시 열림`, clearedMark: '클리어', bestOn: t => `최고 ${t}`, noRecord: '아직 도전 기록 없음', stageMods: (h, g) => `적 체력 ×${h} · 코인 ×${g}`, bossIn: '보스 출현!', revived: '부활!', cleared: '클리어!',
-    evolved: '진화!', chestGot: '상자에서 나온 것', weapon: '무기', dmg: '피해량'
-  }
-};
-const L = () => TX[SV.settings.lang];
-const nm = o => o[SV.settings.lang];
+const str = k => { const a = I18[SV.settings.lang] || I18.en; return a[k] != null ? a[k] : (I18.en[k] != null ? I18.en[k] : ''); };
+const fill = (s, a) => String(s).replace(/\{(\d)\}/g, (_, i) => a[i]);
+const T = (k, ...a) => fill(str(k), a);
+const LP = new Proxy({}, { get: (_, k) => { const s = str(k); return typeof s === 'string' && /\{\d\}/.test(s) ? (...a) => fill(s, a) : s; } });
+const L = () => LP;
+const nm = o => o._nm();
+const num = v => String(Math.round(v * 100) / 100);
+const statText = d => d.map(([k, v]) => T('st.' + k, v == null ? '' : num(v))).join(str('sep')) + str('dot');
 
 // ------------------------------------------------------------- data
 const HEROES = {
-  knight: { spr: 'knight_m', weapon: 'sword', cost: 0, mod: { hp: 1.1 }, en: ['Aldric', 'Knight. +10% max health.'], ko: ['알드릭', '기사. 최대 체력 +10%.'] },
-  elf: { spr: 'elf_f', weapon: 'bow', cost: 300, mod: { spd: 1.1 }, en: ['Sefa', 'Ranger. +10% move speed.'], ko: ['세파', '레인저. 이동 속도 +10%.'] },
-  dwarf: { spr: 'dwarf_m', weapon: 'axe', cost: 600, mod: { armor: 1 }, en: ['Brom', 'Miner. Takes 1 less damage.'], ko: ['브롬', '광부. 받는 피해 -1.'] },
-  wizard: { spr: 'wizzard_m', weapon: 'bombs', cost: 1000, mod: { area: 1.1 }, en: ['Orrin', 'Alchemist. +10% area.'], ko: ['오린', '연금술사. 범위 +10%.'] },
-  lizard: { spr: 'lizard_m', weapon: 'spear', cost: 1500, mod: { might: 1.1 }, en: ['Kesh', 'Hunter. +10% damage.'], ko: ['케쉬', '사냥꾼. 피해 +10%.'] },
-  maren: { spr: 'knight_f', weapon: 'knives', cost: 2200, mod: { cd: 0.92 }, en: ['Maren', 'Duelist. -8% cooldown.'], ko: ['마렌', '결투가. 쿨다운 -8%.'] },
-  hild: { spr: 'dwarf_f', weapon: 'hammers', cost: 3000, mod: { regen: 0.3 }, en: ['Hild', 'Smith. +0.3 health per second.'], ko: ['힐드', '대장장이. 초당 체력 +0.3.'] }
+  knight: { name: 'Aldric', spr: 'knight_m', weapon: 'sword', cost: 0, mod: { hp: 1.1 }, desc: [['hp', 10]] },
+  elf: { name: 'Sefa', spr: 'elf_f', weapon: 'bow', cost: 300, mod: { spd: 1.1 }, desc: [['spd', 10]] },
+  dwarf: { name: 'Brom', spr: 'dwarf_m', weapon: 'axe', cost: 600, mod: { armor: 1 }, desc: [['armor', 1]] },
+  wizard: { name: 'Orrin', spr: 'wizzard_m', weapon: 'bombs', cost: 1000, mod: { area: 1.1 }, desc: [['area', 10]] },
+  lizard: { name: 'Kesh', spr: 'lizard_m', weapon: 'spear', cost: 1500, mod: { might: 1.1 }, desc: [['dmg', 10]] },
+  maren: { name: 'Maren', spr: 'knight_f', weapon: 'knives', cost: 2200, mod: { cd: 0.92 }, desc: [['cd', 8]] },
+  hild: { name: 'Hild', spr: 'dwarf_f', weapon: 'hammers', cost: 3000, mod: { regen: 0.3 }, desc: [['regen', 0.3]] },
+  faelan: { name: 'Faelan', spr: 'elf_m', weapon: 'cleaver', cost: 3800, mod: { dash: 0.7 }, desc: [['dash', 30]] },
+  ysolde: { name: 'Ysolde', spr: 'wizzard_f', weapon: 'staff', cost: 4800, mod: { growth: 1.15 }, desc: [['xp', 15]] },
+  sska: { name: 'Sska', spr: 'lizard_f', weapon: 'katana', cost: 6000, mod: { crit: 0.1 }, desc: [['crit', 10]] }
 };
 
 const WP = {
   sword: { icon: 'weapon_knight_sword', evoIcon: 'weapon_lavish_sword', pair: 'might',
-    lv: [{ dmg: 14, cd: 1.05, area: 1, n: 1 }, { dmg: 18 }, { n: 2 }, { dmg: 24, area: 1.15 }, { dmg: 30, cd: 0.8 }], evo: { dmg: 42, cd: 0.75, area: 1.4, n: 1 },
-    en: ['Longsword', 'Slashes in an arc in front of you.', ['Damage +4', 'Also slashes behind you', 'Damage +6, area +15%', 'Damage +6, faster'], 'Lavish Blade', 'Spins in a full circle.'],
-    ko: ['롱소드', '앞쪽을 크게 벤다.', ['피해 +4', '뒤쪽도 벤다', '피해 +6, 범위 +15%', '피해 +6, 더 빠르게'], '화려한 검', '한 바퀴를 통째로 벤다.'] },
+    lv: [{ dmg: 14, cd: 1.05, area: 1, n: 1 }, { dmg: 18 }, { n: 2 }, { dmg: 24, area: 1.15 }, { dmg: 30, cd: 0.8 }], evo: { dmg: 42, cd: 0.75, area: 1.4, n: 1 } },
   knives: { icon: 'weapon_knife', evoIcon: 'weapon_red_gem_sword', pair: 'haste',
-    lv: [{ dmg: 7, cd: 0.6, n: 1, pierce: 1 }, { n: 2 }, { dmg: 10 }, { n: 3, pierce: 2 }, { cd: 0.42 }], evo: { dmg: 15, cd: 0.4, n: 8, pierce: 3 },
-    en: ['Throwing Knives', 'Throws knives where you face.', ['+1 knife', 'Damage +3', '+1 knife, pierce +1', 'Faster'], 'Ruby Fan', 'Blades burst out in every direction.'],
-    ko: ['투척 단검', '바라보는 방향으로 단검을 던진다.', ['단검 +1', '피해 +3', '단검 +1, 관통 +1', '더 빠르게'], '루비 부채', '사방으로 칼날이 터져 나간다.'] },
+    lv: [{ dmg: 7, cd: 0.6, n: 1, pierce: 1 }, { n: 2 }, { dmg: 10 }, { n: 3, pierce: 2 }, { cd: 0.42 }], evo: { dmg: 15, cd: 0.4, n: 8, pierce: 3 } },
   axe: { icon: 'weapon_throwing_axe', evoIcon: 'weapon_waraxe', pair: 'reach',
-    lv: [{ dmg: 18, cd: 1.6, n: 1, area: 1 }, { n: 2 }, { dmg: 26 }, { area: 1.2 }, { n: 3, dmg: 32 }], evo: { dmg: 48, cd: 1.1, n: 5, area: 1.5 },
-    en: ['Hand Axe', 'Lobs spinning axes overhead. Hits everything.', ['+1 axe', 'Damage +8', 'Area +20%', '+1 axe, damage +6'], 'War Axe', 'A rain of enormous axes.'],
-    ko: ['손도끼', '빙글빙글 도는 도끼를 던져 올린다. 전부 관통.', ['도끼 +1', '피해 +8', '범위 +20%', '도끼 +1, 피해 +6'], '전투 도끼', '거대한 도끼가 비처럼 쏟아진다.'] },
+    lv: [{ dmg: 18, cd: 1.6, n: 1, area: 1 }, { n: 2 }, { dmg: 26 }, { area: 1.2 }, { n: 3, dmg: 32 }], evo: { dmg: 48, cd: 1.1, n: 5, area: 1.5 } },
   hammers: { icon: 'weapon_hammer', evoIcon: 'weapon_big_hammer', pair: 'vitality',
-    lv: [{ dmg: 9, n: 1, area: 1, spd: 3.2 }, { n: 2 }, { dmg: 13, area: 1.15 }, { n: 3 }, { n: 4, spd: 4.2 }], evo: { dmg: 24, n: 4, area: 1.45, spd: 4.6 },
-    en: ['Orbiting Hammer', 'Hammers circle around you.', ['+1 hammer', 'Damage +4, area +15%', '+1 hammer', '+1 hammer, faster'], 'Grand Hammer', 'Huge hammers that send enemies flying.'],
-    ko: ['회전 망치', '망치가 주위를 맴돈다.', ['망치 +1', '피해 +4, 범위 +15%', '망치 +1', '망치 +1, 더 빠르게'], '거대 망치', '적을 날려 버리는 거대한 망치.'] },
+    lv: [{ dmg: 9, n: 1, area: 1, spd: 3.2 }, { n: 2 }, { dmg: 13, area: 1.15 }, { n: 3 }, { n: 4, spd: 4.2 }], evo: { dmg: 24, n: 4, area: 1.45, spd: 4.6 } },
   bow: { icon: 'weapon_bow', evoIcon: 'weapon_bow_2', pair: 'swift',
-    lv: [{ dmg: 11, cd: 1.0, n: 1, pierce: 2 }, { n: 2 }, { dmg: 16, pierce: 3 }, { cd: 0.8 }, { n: 3, dmg: 21 }], evo: { dmg: 26, cd: 0.38, n: 5, pierce: 7 },
-    en: ['Shortbow', 'Shoots the nearest enemies.', ['+1 arrow', 'Damage +5, pierce +1', 'Faster', '+1 arrow, damage +5'], 'Twin Bow', 'A volley of piercing arrows.'],
-    ko: ['단궁', '가장 가까운 적을 쏜다.', ['화살 +1', '피해 +5, 관통 +1', '더 빠르게', '화살 +1, 피해 +5'], '쌍궁', '꿰뚫는 화살이 일제히 날아간다.'] },
+    lv: [{ dmg: 11, cd: 1.0, n: 1, pierce: 2 }, { n: 2 }, { dmg: 16, pierce: 3 }, { cd: 0.8 }, { n: 3, dmg: 21 }], evo: { dmg: 26, cd: 0.38, n: 5, pierce: 7 } },
   bombs: { icon: 'bomb_f0', evoIcon: 'bomb_f2', pair: 'greed',
-    lv: [{ dmg: 26, cd: 2.3, n: 1, area: 1 }, { n: 2 }, { dmg: 36, area: 1.15 }, { n: 3 }, { dmg: 46, cd: 1.8 }], evo: { dmg: 62, cd: 1.5, n: 4, area: 1.35 },
-    en: ['Bombs', 'Throws bombs at nearby enemies.', ['+1 bomb', 'Damage +10, area +15%', '+1 bomb', 'Damage +10, faster'], 'Powder Storm', 'Every blast sets off more blasts.'],
-    ko: ['폭탄', '근처 적에게 폭탄을 던진다.', ['폭탄 +1', '피해 +10, 범위 +15%', '폭탄 +1', '피해 +10, 더 빠르게'], '화약 폭풍', '폭발이 또 다른 폭발을 부른다.'] },
+    lv: [{ dmg: 26, cd: 2.3, n: 1, area: 1 }, { n: 2 }, { dmg: 36, area: 1.15 }, { n: 3 }, { dmg: 46, cd: 1.8 }], evo: { dmg: 62, cd: 1.5, n: 4, area: 1.35 } },
   spear: { icon: 'weapon_spear', evoIcon: 'weapon_saw_sword', pair: 'charm',
-    lv: [{ dmg: 16, cd: 1.15, area: 1, dirs: 1 }, { dmg: 22 }, { dirs: 2 }, { dmg: 28, area: 1.2 }, { dirs: 4 }], evo: { dmg: 46, cd: 0.8, area: 1.4, dirs: 8 },
-    en: ['Spear', 'Thrusts through everything in a line.', ['Damage +6', 'Also thrusts behind you', 'Damage +6, reach +20%', 'Thrusts in four directions'], 'Saw Lance', 'Shreds in eight directions.'],
-    ko: ['창', '일직선상의 모든 것을 꿰뚫는다.', ['피해 +6', '뒤쪽도 찌른다', '피해 +6, 사거리 +20%', '네 방향으로 찌른다'], '톱날 창', '여덟 방향을 갈아 버린다.'] }
+    lv: [{ dmg: 16, cd: 1.15, area: 1, dirs: 1 }, { dmg: 22 }, { dirs: 2 }, { dmg: 28, area: 1.2 }, { dirs: 4 }], evo: { dmg: 46, cd: 0.8, area: 1.4, dirs: 8 } },
+  staff: { icon: 'weapon_green_magic_staff', evoIcon: 'weapon_red_magic_staff', pair: 'tome',
+    lv: [{ dmg: 10, cd: 1.4, n: 1 }, { n: 2 }, { dmg: 14 }, { n: 3 }, { dmg: 18, cd: 1.1 }], evo: { dmg: 24, cd: 0.9, n: 4 } },
+  katana: { icon: 'weapon_katana', evoIcon: 'weapon_anime_sword', pair: 'keen',
+    lv: [{ dmg: 22, cd: 1.9, area: 1 }, { dmg: 30 }, { cd: 1.6 }, { dmg: 40, area: 1.2 }, { dmg: 48, cd: 1.3 }], evo: { dmg: 60, cd: 1.1, area: 1.4 } },
+  cleaver: { icon: 'weapon_cleaver', evoIcon: 'weapon_double_axe', pair: 'pulse',
+    lv: [{ dmg: 15, cd: 1.7, n: 1, area: 1 }, { dmg: 20 }, { n: 2 }, { dmg: 25, area: 1.25 }, { n: 3, cd: 1.4 }], evo: { dmg: 36, cd: 1.2, n: 3, area: 1.6 } },
+  mace: { icon: 'weapon_mace', evoIcon: 'weapon_baton_with_spikes', pair: 'guard',
+    lv: [{ dmg: 16, cd: 2.6, area: 1 }, { dmg: 22 }, { area: 1.2 }, { dmg: 28, cd: 2.1 }, { dmg: 34, area: 1.4 }], evo: { dmg: 46, cd: 1.7, area: 1.75 } }
 };
 const PS = {
-  vitality: { icon: 'ui_heart_full', max: 5, en: ['Heart Container', '+20 max health, +0.2 health per second.'], ko: ['심장 그릇', '최대 체력 +20, 초당 체력 +0.2.'] },
-  might: { icon: 'flask_big_red', max: 5, en: ['Red Flask', '+10% damage.'], ko: ['붉은 플라스크', '피해 +10%.'] },
-  haste: { icon: 'flask_big_blue', max: 5, en: ['Blue Flask', '-7% weapon cooldown.'], ko: ['푸른 플라스크', '무기 쿨다운 -7%.'] },
-  swift: { icon: 'flask_big_green', max: 5, en: ['Green Flask', '+8% move speed.'], ko: ['초록 플라스크', '이동 속도 +8%.'] },
-  reach: { icon: 'flask_big_yellow', max: 5, en: ['Gold Flask', '+10% area.'], ko: ['황금 플라스크', '범위 +10%.'] },
-  greed: { icon: 'coin_anim_f0', max: 5, en: ['Lucky Coin', '+30% pickup range, +10% coins.'], ko: ['행운의 동전', '획득 범위 +30%, 코인 +10%.'] },
-  charm: { icon: 'skull', max: 2, en: ['Bone Charm', '+1 projectile for every weapon.'], ko: ['뼈 부적', '모든 무기의 투사체 +1.'] }
+  vitality: { icon: 'ui_heart_full', max: 5, desc: [['hpf', 20], ['regen', 0.2]] },
+  might: { icon: 'flask_big_red', max: 5, desc: [['dmg', 10]] },
+  haste: { icon: 'flask_big_blue', max: 5, desc: [['cd', 7]] },
+  swift: { icon: 'flask_big_green', max: 5, desc: [['spd', 8]] },
+  reach: { icon: 'flask_big_yellow', max: 5, desc: [['area', 10]] },
+  greed: { icon: 'coin_anim_f0', max: 5, desc: [['magnet', 30], ['coin', 10]] },
+  charm: { icon: 'skull', max: 2, desc: [['proj', 1]] },
+  tome: { icon: 'flask_blue', max: 5, desc: [['xp', 8]] },
+  keen: { icon: 'weapon_golden_sword', max: 5, desc: [['crit', 6]] },
+  pulse: { icon: 'ui_heart_half', max: 5, desc: [['regen', 0.4]] },
+  guard: { icon: 'angel_idle_anim_f0', max: 3, desc: [['armor', 1]] }
 };
 const SHOP = {
-  might: { icon: 'weapon_regular_sword', max: 5, base: 120, en: ['Whetstone', '+5% damage.'], ko: ['숫돌', '피해 +5%.'] },
-  armor: { icon: 'weapon_mace', max: 3, base: 160, en: ['Padding', 'Take 1 less damage.'], ko: ['덧댄 갑옷', '받는 피해 -1.'] },
-  maxhp: { icon: 'ui_heart_full', max: 5, base: 100, en: ['Hearty', '+10% max health.'], ko: ['튼튼함', '최대 체력 +10%.'] },
-  recovery: { icon: 'flask_red', max: 3, base: 140, en: ['Bandages', '+0.2 health per second.'], ko: ['붕대', '초당 체력 +0.2.'] },
-  speed: { icon: 'flask_green', max: 3, base: 120, en: ['Boots', '+5% move speed.'], ko: ['장화', '이동 속도 +5%.'] },
-  magnet: { icon: 'button_blue_up', max: 3, base: 90, en: ['Lodestone', '+20% pickup range.'], ko: ['자철석', '획득 범위 +20%.'] },
-  growth: { icon: 'flask_blue', max: 5, base: 130, en: ['Study', '+6% experience.'], ko: ['공부', '경험치 +6%.'] },
-  greed: { icon: 'chest_full_open_anim_f2', max: 5, base: 110, en: ['Purse', '+10% coins.'], ko: ['지갑', '코인 +10%.'] },
-  reroll: { icon: 'lever_left', max: 3, base: 200, en: ['Second Thoughts', '+1 reroll each run.'], ko: ['재고', '판마다 다시 뽑기 +1.'] },
-  revival: { icon: 'angel_idle_anim_f0', max: 1, base: 900, en: ['Last Breath', 'Get back up once per run.'], ko: ['마지막 숨', '판마다 한 번 다시 일어선다.'] },
-  insight: { icon: 'flask_yellow', max: 1, base: 1200, en: ['Insight', '+1 choice when leveling up.'], ko: ['통찰', '레벨 업 선택지 +1.'] }
+  might: { icon: 'weapon_regular_sword', max: 5, base: 120, desc: [['dmg', 5]] },
+  armor: { icon: 'weapon_rusty_sword', max: 3, base: 160, desc: [['armor', 1]] },
+  maxhp: { icon: 'ui_heart_full', max: 5, base: 100, desc: [['hp', 10]] },
+  recovery: { icon: 'flask_red', max: 3, base: 140, desc: [['regen', 0.2]] },
+  speed: { icon: 'flask_green', max: 3, base: 120, desc: [['spd', 5]] },
+  magnet: { icon: 'button_blue_up', max: 3, base: 90, desc: [['magnet', 20]] },
+  growth: { icon: 'flask_blue', max: 5, base: 130, desc: [['xp', 6]] },
+  greed: { icon: 'chest_full_open_anim_f2', max: 5, base: 110, desc: [['coin', 10]] },
+  crit: { icon: 'weapon_duel_sword', max: 5, base: 140, desc: [['crit', 2]] },
+  dash: { icon: 'lever_right', max: 3, base: 150, desc: [['dash', 10]] },
+  reroll: { icon: 'lever_left', max: 3, base: 200, desc: [['reroll', 1]] },
+  revival: { icon: 'angel_idle_anim_f0', max: 1, base: 900, desc: [['revive']] },
+  insight: { icon: 'flask_yellow', max: 1, base: 1200, desc: [['choice']] }
 };
 const shopCost = (k) => Math.round(SHOP[k].base * (1 + shopLv(k) * 0.9) / 5) * 5;
+const BLESS = {
+  wrath: { icon: 'weapon_red_gem_sword', desc: [['dmg', 20]], f: b => { b.might += 0.2; } },
+  wind: { icon: 'flask_big_blue', desc: [['cd', 12]], f: b => { b.cd += 0.12; } },
+  life: { icon: 'ui_heart_full', desc: [['hpf', 20]], extra: 'blLife', heal: 1, f: b => { b.hp += 20; } },
+  gold: { icon: 'coin_anim_f0', desc: [['coin', 40]], f: b => { b.greed += 0.4; } },
+  pact: { icon: 'skull', desc: [['dmg', 35]], extra: 'blPact', f: b => { b.might += 0.35; b.hp -= 25; } }
+};
+const POT = { pfreeze: 'flask_big_blue', phaste: 'flask_big_green', pmagnet: 'flask_big_yellow' };
 
 const EN = {
   tiny_zombie: { hp: 5, spd: 30, dmg: 3, xp: 1 }, goblin: { hp: 9, spd: 38, dmg: 4, xp: 1 }, imp: { hp: 7, spd: 50, dmg: 3, xp: 1 },
@@ -144,10 +144,15 @@ const EN = {
   necromancer: { hp: 62, spd: 28, dmg: 9, xp: 4 }, wogol: { hp: 62, spd: 40, dmg: 9, xp: 4 }, chort: { hp: 84, spd: 44, dmg: 11, xp: 5 },
   crate: { hp: 16, spd: 0, dmg: 0, xp: 0 }, mimic: { hp: 220, spd: 54, dmg: 9, xp: 12, spr: 'chest_mimic_open' },
   pumpkin_dude: { hp: 95, spd: 34, dmg: 11, xp: 5 }, doc: { hp: 115, spd: 30, dmg: 12, xp: 6 }, slug: { hp: 160, spd: 20, dmg: 13, xp: 7 },
-  ogre: { hp: 1500, spd: 30, dmg: 22, xp: 50, boss: 1, en: 'Ogre', ko: '오우거' },
-  big_zombie: { hp: 3200, spd: 32, dmg: 26, xp: 90, boss: 1, en: 'Rotting Giant', ko: '썩은 거인' },
-  big_demon: { hp: 7500, spd: 36, dmg: 32, xp: 200, boss: 1, en: 'Pit Lord', ko: '구덩이 군주' }
+  ogre: { hp: 1500, spd: 30, dmg: 22, xp: 50, boss: 1 },
+  big_zombie: { hp: 3200, spd: 32, dmg: 26, xp: 90, boss: 1, summon: 'tiny_zombie' },
+  big_demon: { hp: 7500, spd: 36, dmg: 32, xp: 200, boss: 1, summon: 'imp' },
+  warchief: { hp: 2400, spd: 36, dmg: 24, xp: 70, boss: 1, spr: 'orc_warrior', bsc: 2, summon: 'masked_orc' },
+  shaman: { hp: 3000, spd: 30, dmg: 22, xp: 90, boss: 1, spr: 'orc_shaman', bsc: 2, summon: 'goblin' },
+  lich: { hp: 4200, spd: 30, dmg: 26, xp: 120, boss: 1, spr: 'necromancer', bsc: 2, summon: 'skelet' },
+  pumpking: { hp: 3600, spd: 38, dmg: 28, xp: 100, boss: 1, spr: 'pumpkin_dude', bsc: 2, summon: 'imp' }
 };
+const RISE = new Set(['skelet', 'zombie', 'tiny_zombie', 'ice_zombie']);
 const WAVES = [
   ['tiny_zombie', 'goblin'], ['goblin', 'imp', 'tiny_zombie'], ['skelet', 'imp', 'tiny_slug'], ['skelet', 'zombie', 'muddy'],
   ['zombie', 'swampy', 'muddy'], ['ice_zombie', 'masked_orc', 'skelet'], ['masked_orc', 'orc_warrior', 'imp'], ['orc_warrior', 'orc_shaman', 'necromancer'],
@@ -160,26 +165,66 @@ const SEWER_WAVES = [
   ['zombie', 'ice_zombie', 'muddy'], ['ice_zombie', 'slug', 'swampy'], ['orc_shaman', 'swampy', 'slug'], ['necromancer', 'ice_zombie', 'muddy'],
   ['slug', 'wogol', 'zombie'], ['doc', 'slug', 'necromancer'], ['doc', 'slug', 'wogol'], ['slug', 'doc', 'chort']
 ];
+const CAMP_WAVES = [
+  ['goblin', 'tiny_zombie'], ['goblin', 'masked_orc'], ['masked_orc', 'goblin', 'imp'], ['masked_orc', 'orc_warrior'],
+  ['orc_warrior', 'orc_shaman', 'goblin'], ['orc_warrior', 'masked_orc', 'wogol'], ['orc_shaman', 'orc_warrior', 'chort'], ['orc_warrior', 'wogol', 'masked_orc'],
+  ['wogol', 'orc_shaman', 'pumpkin_dude'], ['orc_warrior', 'doc', 'wogol'], ['doc', 'orc_warrior', 'chort'], ['doc', 'wogol', 'orc_warrior', 'pumpkin_dude']
+];
+const CRYPT_WAVES = [
+  ['tiny_zombie', 'skelet'], ['skelet', 'tiny_zombie', 'zombie'], ['skelet', 'zombie', 'ice_zombie'], ['ice_zombie', 'skelet', 'muddy'],
+  ['ice_zombie', 'zombie', 'necromancer'], ['necromancer', 'skelet', 'ice_zombie'], ['necromancer', 'ice_zombie', 'swampy'], ['necromancer', 'wogol', 'skelet'],
+  ['ice_zombie', 'necromancer', 'chort'], ['doc', 'necromancer', 'ice_zombie'], ['doc', 'slug', 'necromancer'], ['doc', 'necromancer', 'chort', 'ice_zombie']
+];
 const HELL_WAVES = [
   ['imp', 'goblin'], ['imp', 'skelet', 'chort'], ['imp', 'chort', 'masked_orc'], ['chort', 'orc_warrior', 'imp'],
   ['chort', 'necromancer', 'pumpkin_dude'], ['wogol', 'chort', 'imp'], ['pumpkin_dude', 'chort', 'orc_warrior'], ['necromancer', 'wogol', 'chort'],
   ['doc', 'chort', 'pumpkin_dude'], ['chort', 'pumpkin_dude', 'doc'], ['doc', 'slug', 'chort'], ['chort', 'doc', 'pumpkin_dude', 'wogol']
 ];
 const STAGES = {
-  keep: { waves: WAVES, bosses: BOSSES, hp: 1, gold: 1, spikes: 5, cycle: 3.6, tint: null, fount: ['red', 'blue'], floor: 0.86, cols: 14, decal: ['skull'], wall: 'keep', icon: 'ogre_idle_anim_f0',
-    en: ['The Keep', 'Stage 1.'], ko: ['성채', '스테이지 1.'] },
-  sewers: { waves: SEWER_WAVES, bosses: [{ t: 240, type: 'big_zombie' }, { t: 480, type: 'ogre' }, { t: 660, type: ['big_zombie', 'ogre'], final: true }], hp: 1.35, gold: 1.3, spikes: 8, cycle: 3.0, tint: '#b4dcbc', fount: ['blue'], floor: 0.7, cols: 10, decal: ['hole', 'skull', 'floor_ladder'], wall: 'sewers', need: 'keep', icon: 'big_zombie_idle_anim_f0',
-    en: ['The Sewers', 'Stage 2. Slugs and swamp monsters. 2 final bosses.'], ko: ['하수도', '스테이지 2. 슬러그·늪 몬스터. 최종 보스 2마리.'] },
-  hell: { waves: HELL_WAVES, bosses: [{ t: 240, type: 'ogre' }, { t: 480, type: 'big_demon' }, { t: 660, type: ['big_demon', 'big_demon'], final: true }], hp: 1.8, gold: 1.7, spikes: 13, cycle: 2.5, tint: '#ffbcaa', fount: ['red'], floor: 0.8, cols: 8, decal: ['skull', 'skull', 'hole'], wall: 'hell', need: 'sewers', icon: 'big_demon_idle_anim_f0',
-    en: ['The Pit Gate', 'Stage 3. Demons, lots of spike traps. 2 final bosses.'], ko: ['지옥문', '스테이지 3. 악마 몬스터, 가시 함정 다수. 최종 보스 2마리.'] }
+  keep: { waves: WAVES, bosses: BOSSES, hp: 1, gold: 1, spikes: 5, cycle: 3.6, tint: null, fount: ['red', 'blue'], floor: 0.86, cols: 14, decal: ['skull'], wall: 'keep', icon: 'ogre_idle_anim_f0' },
+  sewers: { waves: SEWER_WAVES, bosses: [{ t: 240, type: 'big_zombie' }, { t: 480, type: 'ogre' }, { t: 660, type: ['big_zombie', 'ogre'], final: true }], hp: 1.35, gold: 1.3, spikes: 8, cycle: 3.0, tint: '#b4dcbc', fount: ['blue'], floor: 0.7, cols: 10, decal: ['hole', 'skull', 'floor_ladder'], wall: 'sewers', need: 'keep', icon: 'big_zombie_idle_anim_f0' },
+  camp: { waves: CAMP_WAVES, bosses: [{ t: 240, type: 'warchief' }, { t: 480, type: 'shaman' }, { t: 660, type: ['warchief', 'ogre'], final: true }], hp: 1.6, gold: 1.55, spikes: 6, cycle: 3.2, tint: '#ecdfb0', fount: ['red'], floor: 0.8, cols: 12, decal: ['skull', 'hole'], wall: 'camp', need: 'sewers', icon: 'orc_warrior_idle_anim_f0', charge: true },
+  crypt: { waves: CRYPT_WAVES, bosses: [{ t: 240, type: 'big_zombie' }, { t: 480, type: 'lich' }, { t: 660, type: ['lich', 'big_zombie'], final: true }], hp: 1.9, gold: 1.85, spikes: 9, cycle: 2.8, tint: '#b6c6f4', fount: ['blue'], floor: 0.75, cols: 16, decal: ['skull', 'skull', 'skull'], wall: 'crypt', need: 'camp', icon: 'necromancer_anim_f0', rise: true, light: 0.78 },
+  hell: { waves: HELL_WAVES, bosses: [{ t: 240, type: 'pumpking' }, { t: 480, type: 'big_demon' }, { t: 660, type: ['big_demon', 'big_demon'], final: true }], hp: 2.3, gold: 2.2, spikes: 13, cycle: 2.5, tint: '#ffbcaa', fount: ['red'], floor: 0.8, cols: 8, decal: ['skull', 'skull', 'hole'], wall: 'hell', need: 'crypt', icon: 'big_demon_idle_anim_f0' }
 };
-const mapRec = id => (SV.maps && SV.maps[id]) || { best: 0, cleared: false };
+function upLines(id) {
+  const lv = WP[id].lv, cur = Object.assign({}, lv[0]), out = [];
+  for (let i = 1; i < lv.length; i++) {
+    const d = lv[i], parts = [];
+    for (const k in d) {
+      if (k === 'dmg') parts.push(T('up.dmg', d.dmg - cur.dmg));
+      else if (k === 'n') parts.push(T('up.n', d.n - cur.n));
+      else if (k === 'cd' || k === 'spd') parts.push(T('up.cd'));
+      else if (k === 'area') parts.push(T('up.area', Math.round((d.area - cur.area) * 100)));
+      else if (k === 'pierce') parts.push(T('up.pierce', d.pierce - cur.pierce));
+      else if (k === 'dirs') parts.push(T('up.dirs'));
+    }
+    Object.assign(cur, d); out.push(parts.join(str('sep')));
+  }
+  return out;
+}
+const hn = id => str('hn.' + id) || HEROES[id].name;
+for (const id in WP) WP[id]._nm = () => { const a = str('w.' + id); return [a[0], a[1], upLines(id), a[2], a[3]]; };
+for (const id in PS) PS[id]._nm = () => [T('p.' + id), statText(PS[id].desc)];
+for (const id in SHOP) SHOP[id]._nm = () => [T('s.' + id), statText(SHOP[id].desc)];
+for (const id in HEROES) HEROES[id]._nm = () => [hn(id), T('cl.' + id) + str('dot') + str('gap') + statText(HEROES[id].desc)];
+for (const id in STAGES) STAGES[id]._nm = () => str('m.' + id);
+for (const id in EN) if (EN[id].boss) EN[id]._nm = () => T('b.' + id);
+const QUESTS = [['kills', 500, 100], ['kills', 5000, 400], ['kills', 25000, 1500], ['clear', 'keep', 150], ['clear', 'sewers', 300], ['clear', 'camp', 450], ['clear', 'crypt', 600], ['clear', 'hell', 1000],
+  ['evolve', 1, 150], ['evolve', 10, 600], ['lvl', 20, 150], ['lvl', 40, 500], ['time', 5, 100], ['time', 10, 300], ['heroes', 4, 300], ['heroes', 10, 1500],
+  ['chests', 25, 300], ['bosses', 10, 300], ['bosses', 50, 1200], ['shrines', 10, 250], ['torment', 1, 500], ['torment', 3, 1500]].map(([t, n, r]) => ({ id: t + '_' + n, t, n, r }));
+const mapRec = id => (SV.maps && SV.maps[id]) || { best: 0, cleared: false, tor: 0 };
+const curTor = id => Math.max(0, Math.min((SV.tor && SV.tor[id]) || 0, mapRec(id).tor || 0, 5));
+const qProg = q => { const st = SV.stats; switch (q.t) { case 'kills': return st.kills; case 'clear': return mapRec(q.n).cleared ? 1 : 0; case 'evolve': return st.evos; case 'lvl': return SV.best.level; case 'time': return Math.floor(SV.best.time / 60); case 'heroes': return Object.keys(SV.heroes).length; case 'chests': return st.chests; case 'bosses': return st.bosses; case 'shrines': return st.shrines; case 'torment': return st.torMax || 0; } return 0; };
+const qGoal = q => q.t === 'clear' ? 1 : q.n;
+const qText = q => q.t === 'clear' ? T('q.clear', nm(STAGES[q.n])[0]) : T('q.' + q.t, q.n);
+function checkQuests() { const done = []; for (const q of QUESTS) if (!SV.q[q.id] && qProg(q) >= qGoal(q)) { SV.q[q.id] = 1; SV.coins += q.r; done.push(q); } if (done.length) persist(); return done; }
 const stageOpen = id => !STAGES[id].need || mapRec(STAGES[id].need).cleared;
 const ELITES = [90, 200, 330, 420, 540, 620];
 
 // ------------------------------------------------------------- assets
 const sheet = new Image();
-let flashSheet, redSheet, sheetData;
+let flashSheet, redSheet, iceSheet, sheetData;
 const loadState = { img: false, fonts: false };
 function buildSheets() {
   const mk = (color) => {
@@ -187,7 +232,7 @@ function buildSheets() {
     const x = c.getContext('2d'); x.drawImage(sheet, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height);
     return c;
   };
-  flashSheet = mk('#fdf7ed'); redSheet = mk('#da4e38');
+  flashSheet = mk('#fdf7ed'); redSheet = mk('#da4e38'); iceSheet = mk('#8fd8f0');
   const c = document.createElement('canvas'); c.width = sheet.width; c.height = sheet.height;
   const x = c.getContext('2d'); x.drawImage(sheet, 0, 0); sheetData = x.getImageData(0, 0, c.width, c.height).data;
 }
@@ -216,7 +261,7 @@ function frames(base, kind) {
 let V, vctx; // view
 function spr(name, x, y, opts) {
   const f = AT[name]; if (!f) return;
-  const src = opts && opts.flash ? flashSheet : opts && opts.red ? redSheet : sheet;
+  const src = opts && opts.flash ? flashSheet : opts && opts.red ? redSheet : opts && opts.ice ? iceSheet : sheet;
   const s = (opts && opts.scale) || 1, w = f[2] * s, h = f[3] * s;
   const flip = opts && opts.flip;
   if (opts && opts.alpha != null) vctx.globalAlpha = opts.alpha;
@@ -379,7 +424,7 @@ function resize() {
 const TS = 16, COLS = 64, ROWS = 46;
 const AW = COLS * TS, AH = ROWS * TS;
 let floorMap = [], props = [], wallDeco = [];
-let spikes = [], crateSpots = [];
+let spikes = [], crateSpots = [], shrineSpots = [];
 function genWorld(stId) {
   const ST_ = STAGES[stId || 'keep'];
   floorMap = [];
@@ -414,10 +459,21 @@ function genWorld(stId) {
       break;
     }
   }
+  shrineSpots = [];
+  for (let i = 0; i < 3; i++) for (let t = 0; t < 60; t++) {
+    const x = irnd(4, COLS - 5) * TS + 8, y = irnd(5, ROWS - 4) * TS + 8;
+    if (dist2(x, y, cx, cy) < 190 * 190) continue;
+    if (props.some(o => o.solid && dist2(o.x, o.y, x, y) < 44 * 44) || crateSpots.some(o => dist2(o.x, o.y, x, y) < 44 * 44)) continue;
+    if (shrineSpots.some(o => dist2(o.x, o.y, x, y) < 250 * 250)) continue;
+    if (spikes.some(k => Math.abs(k.x - x) < 30 && Math.abs(k.y - y) < 30)) continue;
+    shrineSpots.push({ x, y }); break;
+  }
   wallDeco = [];
   for (let x = 1; x < COLS - 1; x++) {
     const r = Math.random();
-    if (ST_.wall === 'sewers') { if (r < 0.16) wallDeco[x] = 'wall_goo'; else if (r < 0.24) wallDeco[x] = pick(['wall_hole_1', 'wall_hole_2']); else if (r < 0.27) wallDeco[x] = 'wall_banner_green'; }
+    if (ST_.wall === 'camp') { if (r < 0.2) wallDeco[x] = pick(['wall_banner_red', 'wall_banner_yellow']); else if (r < 0.25) wallDeco[x] = 'wall_hole_1'; }
+    else if (ST_.wall === 'crypt') { if (r < 0.14) wallDeco[x] = pick(['wall_hole_1', 'wall_hole_2']); else if (r < 0.2) wallDeco[x] = 'wall_banner_blue'; else if (r < 0.24) wallDeco[x] = 'wall_goo'; }
+    else if (ST_.wall === 'sewers') { if (r < 0.16) wallDeco[x] = 'wall_goo'; else if (r < 0.24) wallDeco[x] = pick(['wall_hole_1', 'wall_hole_2']); else if (r < 0.27) wallDeco[x] = 'wall_banner_green'; }
     else if (ST_.wall === 'hell') { if (r < 0.1) wallDeco[x] = 'wall_banner_red'; else if (r < 0.2) wallDeco[x] = pick(['wall_hole_1', 'wall_hole_2']); }
     else if (r < 0.06) wallDeco[x] = pick(['wall_banner_red', 'wall_banner_blue', 'wall_banner_green', 'wall_banner_yellow']);
     else if (r < 0.1) wallDeco[x] = pick(['wall_hole_1', 'wall_hole_2']);
@@ -466,28 +522,31 @@ function newRun(heroId) {
     regen: (m.regen || 0) + 0.2 * shopLv('recovery'),
     spd: 62 * (m.spd || 1) * (1 + 0.05 * shopLv('speed')),
     magnet: 34 * (1 + 0.2 * shopLv('magnet')),
-    growth: 1 + 0.06 * shopLv('growth'),
+    growth: (1 + 0.06 * shopLv('growth')) * (m.growth || 1),
     greed: 1 + 0.1 * shopLv('greed'),
-    area: m.area || 1, cd: m.cd || 1
+    area: m.area || 1, cd: m.cd || 1, crit: 0.08 + (m.crit || 0) + 0.02 * shopLv('crit'), dashCd: 3 * (m.dash || 1) * (1 - 0.1 * shopLv('dash'))
   };
   G = {
     hero: heroId, base, t: 0, kills: 0, gold: 0, lvl: 1, xp: 0, pendingLv: 0,
-    p: { x: AW / 2, y: AH / 2 + 30, hp: base.maxhp, inv: 0, face: 1, dirx: 1, diry: 0, moving: false, anim: 0, hurtT: 0 },
+    p: { x: AW / 2, y: AH / 2 + 30, hp: base.maxhp, inv: 0, face: 1, dirx: 1, diry: 0, moving: false, anim: 0, hurtT: 0, dashT: 0, dashCd: 0, ddx: 1, ddy: 0 },
     weapons: [], passives: {}, enemies: [], shots: [], pickups: [], parts: [], nums: [], blasts: [], swings: [],
     spawnAcc: 0, bossesDone: {}, swarmsDone: {}, elitesDone: {}, boss: null, rerolls: shopLv('reroll'), revive: shopLv('revival') > 0,
     stage: SV.stage || 'keep', bossList: [], finalLeft: 0, rushAt: rnd(170, 400), rushT: 0, rushDone: false, crateT: 30,
+    tor: curTor(SV.stage || 'keep'), bl: { might: 0, cd: 0, greed: 0, hp: 0 }, fz: 0, fzIdle: 0, frenzyT: 0, freezeT: 0, hasteT: 0, ghosts: [], risers: [], shrines: [], shrineOpen: false, chargeT: 70,
     shake: 0, hitstop: 0, cam: { x: AW / 2 - VW / 2, y: AH / 2 - VH / 2 }, won: false, over: false, lightPulse: 0, redT: 0
   };
   genWorld(G.stage);
+  G.shrines = shrineSpots.map(o => ({ x: o.x, y: o.y, used: false }));
   for (const c of crateSpots) spawnEnemy('crate', c.x, c.y, { static: true });
   addWeapon(H.weapon);
 }
 const S = () => { // live stats
-  const b = G.base, p = G.passives;
+  const b = G.base, p = G.passives, bl = G.bl;
   return {
-    maxhp: b.maxhp + 20 * (p.vitality || 0), regen: b.regen + 0.2 * (p.vitality || 0), might: b.might * (1 + 0.1 * (p.might || 0)),
-    cd: b.cd * Math.pow(0.93, p.haste || 0), spd: b.spd * (1 + 0.08 * (p.swift || 0)), area: b.area * (1 + 0.1 * (p.reach || 0)),
-    magnet: b.magnet * (1 + 0.3 * (p.greed || 0)), greed: b.greed * (1 + 0.1 * (p.greed || 0)), amount: p.charm || 0, armor: b.armor, growth: b.growth
+    maxhp: Math.max(20, b.maxhp + 20 * (p.vitality || 0) + bl.hp), regen: b.regen + 0.2 * (p.vitality || 0) + 0.4 * (p.pulse || 0), might: b.might * (1 + 0.1 * (p.might || 0)) * (1 + bl.might),
+    cd: b.cd * Math.pow(0.93, p.haste || 0) * (1 - Math.min(0.5, bl.cd)), spd: b.spd * (1 + 0.08 * (p.swift || 0)), area: b.area * (1 + 0.1 * (p.reach || 0)),
+    magnet: b.magnet * (1 + 0.3 * (p.greed || 0)), greed: b.greed * (1 + 0.1 * (p.greed || 0)) * (1 + bl.greed), amount: p.charm || 0, armor: b.armor + (p.guard || 0), growth: b.growth * (1 + 0.08 * (p.tome || 0)),
+    crit: b.crit + 0.06 * (p.keen || 0), dashCd: b.dashCd
   };
 };
 let ST = null; // cached stats, refreshed on change
@@ -509,11 +568,20 @@ addEventListener('keydown', e => {
   audioUnlock();
   if (k === 'escape' || k === 'p') {
     if (state.mode === 'play') { if (state.paused) resume(); else pauseGame(); }
-    else if (['sSettings', 'sCredits', 'sArmory', 'sHero'].includes(curScreen)) back();
+    else if (['sSettings', 'sCredits', 'sArmory', 'sHero', 'sQuests', 'sLang', 'sStage'].includes(curScreen)) back();
   }
   if (state.mode === 'level' && ['1', '2', '3', '4'].includes(k)) { const b = $('choices').children[+k - 1]; if (b) b.click(); }
   if (state.mode === 'chest' && (k === 'enter' || k === ' ') && !$('bTake').disabled) { e.preventDefault(); $('bTake').click(); }
+  else if ((k === ' ' || k === 'shift') && state.mode === 'play' && !state.paused) { e.preventDefault(); tryDash(); }
 });
+function tryDash() {
+  if (!G || G.over || state.mode !== 'play' || state.paused) return;
+  const p = G.p; if (p.dashCd > 0) return;
+  let dx = p.dirx, dy = p.diry; const l = Math.hypot(dx, dy);
+  if (l < 0.1) { dx = p.face; dy = 0; } else { dx /= l; dy /= l; }
+  p.ddx = dx; p.ddy = dy; p.dashT = 0.18; p.dashCd = ST.dashCd; p.inv = Math.max(p.inv, 0.34); sfx('knife', 0.55, 0.2);
+}
+$('dashBtn').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audioUnlock(); tryDash(); });
 addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
 cv.addEventListener('pointerdown', e => {
   audioUnlock();
@@ -548,16 +616,19 @@ function spawnPos(margin) {
   const x = G.p.x < AW / 2 ? AW - 20 : 20; return [x, rnd(20, AH - 20)];
 }
 const STG = () => STAGES[G.stage];
-function hpMul() { const m = G.t / 60; return (1 + m * 0.17 + Math.max(0, m - 7) * 0.22) * STG().hp; }
+const SHP = () => STG().hp * (1 + 0.25 * G.tor);
+const SGOLD = () => STG().gold * (1 + 0.2 * G.tor);
+const tempo = () => (G.frenzyT > 0 ? 0.6 : 1) * (G.hasteT > 0 ? 0.8 : 1);
+function hpMul() { const m = G.t / 60; return (1 + m * 0.17 + Math.max(0, m - 7) * 0.22) * SHP(); }
 function spawnEnemy(type, x, y, o = {}) {
   const d = EN[type];
   const runF = frames(d.spr || type, 'run'), idleF = frames(d.spr || type, 'idle');
   const f0 = AT[runF[0]];
-  const big = d.boss ? 1 : 0, sc = o.elite ? 2 : 1;
-  const hp = d.boss ? d.hp * (1 + G.t / 900) * STG().hp : d.hp * hpMul() * (o.elite ? 14 : 1);
+  const big = d.boss ? 1 : 0, sc = o.elite ? 2 : (d.bsc || 1);
+  const hp = d.boss ? d.hp * (1 + G.t / 900) * SHP() : d.hp * hpMul() * (o.elite ? 14 : 1);
   const e = {
-    type, x, y, hp, maxhp: hp, spd: d.spd * rnd(0.9, 1.1) * (o.elite ? 0.9 : 1), dmg: d.dmg * (o.elite ? 1.6 : 1) * (1 + G.t / 900) * (1 + (STG().hp - 1) * 0.5), static: !!o.static, xp: d.xp * (o.elite ? 10 : 1),
-    run: runF, idle: idleF, h: f0 ? f0[3] : 16, r: (big ? 13 : f0 && f0[3] > 18 ? 7 : 6) * sc, sc, elite: !!o.elite, boss: !!d.boss, final: !!o.final,
+    type, x, y, hp, maxhp: hp, spd: d.spd * rnd(0.9, 1.1) * (o.elite ? 0.9 : 1), dmg: d.dmg * (o.elite ? 1.6 : 1) * (1 + G.t / 900) * (1 + (STG().hp - 1) * 0.5) * (1 + 0.1 * G.tor), static: !!o.static, xp: d.xp * (o.elite ? 10 : 1),
+    run: runF, idle: idleF, h: f0 ? f0[3] : 16, r: big ? 13 : (f0 && f0[3] > 18 ? 7 : 6) * sc, sc, elite: !!o.elite, boss: !!d.boss, final: !!o.final,
     flash: 0, kbx: 0, kby: 0, anim: rnd(0, 1), face: 1, hitCd: {}, dash: 0, dashT: rnd(3, 5), summonT: 6, tele: 0, swarm: o.swarm ? { vx: o.vx, vy: o.vy, t: 9 } : null
   };
   G.enemies.push(e);
@@ -597,6 +668,14 @@ function spawner(dt) {
   for (const s of ELITES) if (t >= s && !G.elitesDone[s]) {
     G.elitesDone[s] = true; const [x, y] = spawnPos(30); spawnEnemy(pick(wave), x, y, { elite: true });
   }
+  if (STG().charge) {
+    G.chargeT -= dt;
+    if (G.chargeT <= 0) {
+      G.chargeT = 55; banner(T('charge')); sfx('impact', 0.8, 0);
+      const dir = Math.random() < 0.5 ? 1 : -1, x0 = clamp(G.p.x - dir * (VW / 2 + 16), 8, AW - 8), type = wave[wave.length - 1];
+      for (let i = 0; i < 12; i++) { const e = spawnEnemy(type, x0 + rnd(-10, 10), clamp(G.p.y - 88 + i * 16, 16, AH - 4)); e.charge = { vx: dir, t: 3 }; }
+    }
+  }
 }
 
 // ------------------------------------------------------------- spatial hash
@@ -619,7 +698,7 @@ function nearest(x, y, maxR, exclude) {
 function damage(e, amount, w, kx, ky, kb) {
   if (e.hp <= 0) return;
   let dmg = amount * ST.might * rnd(0.9, 1.1);
-  const crit = Math.random() < 0.08; if (crit) dmg *= 2;
+  const crit = Math.random() < ST.crit; if (crit) dmg *= 2;
   dmg = Math.max(1, Math.round(dmg));
   e.hp -= dmg; e.flash = 0.12;
   if (w) w.dmg += Math.min(dmg, dmg + e.hp);
@@ -637,9 +716,11 @@ function kill(e) {
     const r = Math.random();
     if (r < 0.14) G.pickups.push({ k: 'heart', x: e.x, y: e.y, t: 0 });
     else if (r < 0.2) G.pickups.push({ k: 'keg', x: e.x, y: e.y, t: 0 });
+    else if (r < 0.29) G.pickups.push({ k: pick(['pfreeze', 'phaste', 'pmagnet']), x: e.x, y: e.y, t: 0 });
     return;
   }
-  G.kills++;
+  G.kills++; SV.stats.kills++;
+  if (G.frenzyT <= 0) G.fz = Math.min(1, G.fz + 0.011); G.fzIdle = 0;
   const pts = samples(e.run[0]); const n = e.boss ? 60 : e.elite ? 30 : 10;
   for (let i = 0; i < n && pts.length; i++) {
     const p = pick(pts); const a = rnd(0, TAU), s = rnd(20, 70) * (e.boss ? 1.6 : 1);
@@ -651,6 +732,7 @@ function kill(e) {
     G.shake = e.boss ? 0.9 : 0.4; G.hitstop = e.boss ? 0.25 : 0.06;
     sfx(e.boss ? 'bigboom' : 'boom', 0.9, 0);
     if (e.boss) {
+      SV.stats.bosses++;
       G.bossList = G.bossList.filter(b => b !== e && b.hp > 0); G.boss = G.bossList[0] || null;
       if (e.final && --G.finalLeft <= 0) win();
     }
@@ -659,6 +741,7 @@ function kill(e) {
     const r = Math.random();
     if (r < 0.004) G.pickups.push({ k: 'heart', x: e.x, y: e.y, t: 0 });
     else if (r < 0.0062) G.pickups.push({ k: 'keg', x: e.x, y: e.y, t: 0 });
+    if (STG().rise && !G.won && !e.risen && RISE.has(e.type) && Math.random() < 0.22) G.risers.push({ x: e.x, y: e.y, type: e.type, t: 1.4 });
   }
 }
 function dropCoin(x, y, v) {
@@ -706,12 +789,12 @@ function fireWeapons(dt) {
   for (const w of G.weapons) {
     const s = wStats(w);
     const n = (s.n || 1) + ST.amount;
-    if (w.id === 'hammers') { updateHammers(w, s, n, dt); continue; }
+    if (w.id === 'hammers') { updateHammers(w, s, n, dt / tempo()); continue; }
     w.t -= dt;
     // queued shots (knives fire one after another)
     if (w.q > 0) { w.qt -= dt; if (w.qt <= 0) { w.q--; w.qt = 0.07; throwKnife(w, s, w.q2); } }
     if (w.t > 0) continue;
-    w.t = s.cd * ST.cd;
+    w.t = s.cd * ST.cd * tempo();
     switch (w.id) {
       case 'sword': {
         const dirs = w.evo ? [0] : n >= 2 ? [0, Math.PI] : [0];
@@ -759,6 +842,34 @@ function fireWeapons(dt) {
         for (let i = 0; i < nd; i++) G.swings.push({ w, kind: 'thrust', ang: base + i / nd * TAU * (nd === 2 ? 1 : 1), t: 0, dur: 0.26, len: 50 * s.area * ST.area, dmg: s.dmg, hit: new Set(), spr: w.evo ? 'weapon_saw_sword' : 'weapon_spear' });
         sfx('knife', 0.5); break;
       }
+      case 'staff': {
+        for (let i = 0; i < n; i++) { const a = rnd(0, TAU); G.shots.push({ w, kind: 'orb', x: p.x, y: p.y - 12, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90, life: 2.4, t: -i * 0.08, dmg: s.dmg, pierce: 1, r: 4, hit: new Set(), boom: w.evo ? 22 * ST.area : 0, evo: w.evo, tr: 0 }); }
+        sfx('shoot', 0.3, 0.2); break;
+      }
+      case 'katana': {
+        const tg = nearest(p.x, p.y - 8, 130);
+        const base = tg ? Math.atan2(tg.y - tg.h / 2 - (p.y - 10), tg.x - p.x) : Math.hypot(p.dirx, p.diry) > 0.1 ? Math.atan2(p.diry, p.dirx) : (p.face > 0 ? 0 : Math.PI);
+        const nd = w.evo ? 4 : 1;
+        for (let i = 0; i < nd; i++) G.swings.push({ w, kind: 'thrust', ang: base + i * Math.PI / 2, t: -(i % 2) * 0.1, dur: 0.18, len: 86 * s.area * ST.area, dmg: s.dmg, hit: new Set(), spr: w.evo ? 'weapon_anime_sword' : 'weapon_katana', streak: true });
+        sfx('sword', 0.6, 0.2); break;
+      }
+      case 'cleaver': {
+        const used = new Set();
+        for (let i = 0; i < n; i++) {
+          const tg = nearest(p.x, p.y, 200, used); if (tg) used.add(tg);
+          const a = tg ? Math.atan2(tg.y - tg.h / 2 - (p.y - 10), tg.x - p.x) : (p.face > 0 ? 0 : Math.PI) + rnd(-0.5, 0.5) + i * 0.7;
+          G.shots.push({ w, kind: 'boom', spr: w.evo ? 'weapon_double_axe' : 'weapon_cleaver', x: p.x, y: p.y - 10, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, rot: a, vr: 16, life: 3, t: -i * 0.12, dmg: s.dmg, pierce: 999, r: 8 * s.area * ST.area, hit: new Set(), back: false });
+        }
+        sfx('thunk', 0.45, 0.2); break;
+      }
+      case 'mace': {
+        const R = 46 * s.area * ST.area;
+        queryR(p.x, p.y - 6, R + 16, e => { if (dist2(p.x, p.y - 6, e.x, e.y) < (R + e.r) * (R + e.r)) { damage(e, s.dmg, w, e.x - p.x, e.y - p.y, 2.4); if (w.evo && !e.boss && e.hp > 0) e.stunT = 1.1; } });
+        G.blasts.push({ x: p.x, y: p.y - 4, r: R, t: 0, life: 0.3, ring: true });
+        G.swings.push({ w, kind: 'slam', t: 0, dur: 0.22, spr: w.evo ? 'weapon_baton_with_spikes' : 'weapon_mace', hit: new Set() });
+        G.shake = Math.max(G.shake, 0.18); sfx('impact', 0.6, 0.15);
+        burst(p.x, p.y - 2, 14, ['#775c55', '#483b3a', '#aa8d7a'], 110, 0.35, 0); break;
+      }
     }
   }
 }
@@ -788,6 +899,7 @@ function updateSwings(dt) {
     const s = G.swings[i]; s.t += dt;
     if (s.t < 0) continue;
     const k = clamp(s.t / s.dur, 0, 1);
+    if (s.kind === 'slam') { if (s.t >= s.dur) G.swings.splice(i, 1); continue; }
     if (s.kind === 'thrust') {
       const ext = k < 0.4 ? k / 0.4 : 1 - (k - 0.4) / 0.6;
       const L = s.len * ext, cx = Math.cos(s.ang), cy = Math.sin(s.ang), ox = p.x, oy = p.y - 10;
@@ -821,6 +933,15 @@ function updateShots(dt) {
       if (s.t >= s.fly + s.fuse) { explode(s.x, s.y, s.r, s.dmg, s.w); if (s.evo) for (let j = 0; j < 3; j++) { const a = rnd(0, TAU); G.blasts.push({ x: s.x + Math.cos(a) * s.r, y: s.y + Math.sin(a) * s.r * 0.7, r: s.r * 0.7, t: -0.15 - j * 0.08, life: 0.35, dmg: s.dmg * 0.6, w: s.w, pending: true }); } G.shots.splice(i, 1); }
       continue;
     }
+    if (s.kind === 'orb') {
+      if (!s.tg || s.tg.hp <= 0) s.tg = nearest(s.x, s.y, 220);
+      if (s.tg) { const dx = s.tg.x - s.x, dy = s.tg.y - s.tg.h * s.tg.sc / 2 - s.y, d = Math.hypot(dx, dy) || 1; s.vx += dx / d * 900 * dt; s.vy += dy / d * 900 * dt; }
+      const v = Math.hypot(s.vx, s.vy) || 1, mv = 190; if (v > mv) { s.vx *= mv / v; s.vy *= mv / v; }
+      s.tr += dt; if (s.tr > 0.03) { s.tr = 0; G.parts.push({ x: s.x, y: s.y, vx: 0, vy: 0, c: s.evo ? '#ee8e2e' : '#72d6ce', t: 0, life: 0.25, sz: 1 }); }
+    } else if (s.kind === 'boom') {
+      if (!s.back) { const k = Math.pow(0.12, dt); s.vx *= k; s.vy *= k; if (s.t > 0.5) { s.back = true; s.hit = new Set(); } }
+      else { const dx = G.p.x - s.x, dy = G.p.y - 10 - s.y, d = Math.hypot(dx, dy) || 1; s.vx = dx / d * 270; s.vy = dy / d * 270; if (d < 10) { G.shots.splice(i, 1); continue; } }
+    }
     if (s.g) s.vy += s.g * dt;
     s.x += s.vx * dt; s.y += s.vy * dt;
     if (s.vr) s.rot += s.vr * dt;
@@ -829,7 +950,7 @@ function updateShots(dt) {
       if (dist2(s.x, s.y, e.x, e.y - e.h * e.sc / 2) > (e.r + s.r) * (e.r + s.r)) return;
       s.hit.add(e); s.pierce--; damage(e, s.dmg, s.w, s.vx, s.vy, s.kind === 'axe' ? 0.6 : 1);
     });
-    if (s.pierce <= 0 || s.t > s.life) G.shots.splice(i, 1);
+    if (s.pierce <= 0 || s.t > s.life) { if (s.boom && s.pierce <= 0) explode(s.x, s.y, s.boom, s.dmg * 0.7, s.w); G.shots.splice(i, 1); }
   }
 }
 function explode(x, y, r, dmg, w) {
@@ -872,12 +993,14 @@ function applyChoice(c) {
   else if (c.kind === 'p') { G.passives[c.id] = (G.passives[c.id] || 0) + 1; if (c.id === 'vitality') G.p.hp += 20; }
   else if (c.kind === 'heal') G.p.hp = Math.min(ST.maxhp, G.p.hp + 30);
   else if (c.kind === 'gold') G.gold += 25;
+  else if (c.kind === 'b') { BLESS[c.id].f(G.bl); if (BLESS[c.id].heal) { refreshStats(); G.p.hp = ST.maxhp; } }
   refreshStats(); G.p.hp = Math.min(G.p.hp, ST.maxhp); buildInv();
 }
 function choiceInfo(c) {
   const Lx = L();
   if (c.kind === 'heal') return { icon: 'flask_big_red', t: Lx.heal, d: Lx.healD, tag: '' };
   if (c.kind === 'gold') return { icon: 'coin_anim_f0', t: Lx.goldBag, d: Lx.goldBagD, tag: '' };
+  if (c.kind === 'b') { const b = BLESS[c.id]; return { icon: b.icon, t: T('bl.' + c.id), d: statText(b.desc) + (b.extra ? str('gap') + T(b.extra) : ''), tag: '' }; }
   if (c.kind === 'w') {
     const d = nm(WP[c.id]), w = weapon(c.id);
     if (!w) { const pr = nm(PS[WP[c.id].pair])[0]; return { icon: WP[c.id].icon, t: d[0], d: d[1] + ' (' + Lx.pairsW(pr) + ')', tag: Lx.isNew, cls: 'new' }; }
@@ -888,7 +1011,16 @@ function choiceInfo(c) {
   return { icon: PS[c.id].icon, t: d[0], d: d[1] + (pairW ? ' (' + Lx.pairsP(nm(WP[pairW])[0]) + ')' : ''), tag: lv ? Lx.lv(lv + 1) : Lx.isNew, cls: lv ? '' : 'new' };
 }
 let curChoices = [];
+function openShrine() {
+  state.mode = 'level'; gpStop(); G.shrineOpen = true; SV.stats.shrines++;
+  sfx('fanfare', 0.7, 0);
+  burst(G.p.x, G.p.y - 10, 40, ['#facb3e', '#fdf7ed', '#ee8e2e'], 140, 0.6, 0);
+  $('lvTitle').textContent = T('shrine');
+  showChoices(shuffle(Object.keys(BLESS)).slice(0, 3).map(id => ({ kind: 'b', id })));
+  showScreen('sLevel');
+}
 function openLevel() {
+  $('lvTitle').textContent = T('levelUp');
   state.mode = 'level'; gpStop();
   sfx('levelup', 0.9, 0);
   // level-up shockwave pushes enemies back
@@ -909,16 +1041,17 @@ function showChoices(list) {
     b.onmouseenter = () => sfx('move', 0.4, 0);
     b.onclick = () => {
       if (state.mode !== 'level') return;
-      sfx('select', 0.7, 0); applyChoice(c); G.pendingLv--;
+      sfx('select', 0.7, 0); applyChoice(c);
+      if (G.shrineOpen) { G.shrineOpen = false; $('lvTitle').textContent = T('levelUp'); } else G.pendingLv--;
       if (G.pendingLv > 0) { showChoices(rollChoices(3 + shopLv('insight'))); sfx('levelup', 0.7, 0); }
       else { showScreen(null); state.mode = 'play'; gpStart(); }
     };
     box.appendChild(b);
   });
-  const rb = $('bReroll'); rb.textContent = G.rerolls > 0 ? L().reroll(G.rerolls) : L().adReroll; rb.style.display = G.rerolls > 0 || (!STANDALONE && (G.adRerolls || 0) < 3) ? '' : 'none';
+  const rb = $('bReroll'); rb.textContent = G.rerolls > 0 ? L().reroll(G.rerolls) : L().adReroll; rb.style.display = !G.shrineOpen && (G.rerolls > 0 || (!STANDALONE && (G.adRerolls || 0) < 3)) ? '' : 'none';
 }
 $('bReroll').onclick = () => {
-  if (state.mode !== 'level') return;
+  if (state.mode !== 'level' || G.shrineOpen) return;
   if (G.rerolls > 0) { G.rerolls--; sfx('move', 0.6, 0); showChoices(rollChoices(3 + shopLv('insight'))); return; }
   if (STANDALONE || (G.adRerolls || 0) >= 3) return;
   ADS.show('rewarded', () => { G.adRerolls = (G.adRerolls || 0) + 1; sfx('move', 0.6, 0); showChoices(rollChoices(3 + shopLv('insight'))); }, () => { $('bReroll').textContent = L().adFail; });
@@ -927,7 +1060,7 @@ $('bReroll').onclick = () => {
 // chest
 let chestAnim = null;
 function openChest() {
-  state.mode = 'chest'; gpStop(); showScreen('sChest'); sfx('chest', 0.9, 0);
+  state.mode = 'chest'; gpStop(); showScreen('sChest'); sfx('chest', 0.9, 0); SV.stats.chests++;
   const evo = G.weapons.find(canEvolve);
   const rewards = [];
   if (evo) rewards.push({ kind: 'evo', id: evo.id });
@@ -939,8 +1072,8 @@ function openChest() {
       rewards.push(c); if (c.kind !== 'gold') applyChoice(c); else G.gold += 25;
     }
   }
-  if (evo) { evo.evo = true; refreshStats(); buildInv(); }
-  const goldBonus = Math.round(irnd(10, 40) * STG().gold); G.gold += Math.round(goldBonus * ST.greed);
+  if (evo) { evo.evo = true; SV.stats.evos++; refreshStats(); buildInv(); }
+  const goldBonus = Math.round(irnd(10, 40) * SGOLD()); G.gold += Math.round(goldBonus * ST.greed);
   $('chestOut').innerHTML = ''; $('bTake').disabled = true;
   const reel = $('reel'); reel.innerHTML = '';
   const allIcons = [...Object.values(WP).map(w => w.icon), ...Object.values(PS).map(p => p.icon)];
@@ -990,12 +1123,23 @@ function update(dt) {
   const ml = Math.hypot(mx, my);
   p.moving = ml > 0.1;
   if (p.moving) { mx /= Math.max(1, ml); my /= Math.max(1, ml); p.dirx = mx; p.diry = my; if (Math.abs(mx) > 0.15) p.face = mx > 0 ? 1 : -1; }
-  p.x = clamp(p.x + mx * ST.spd * dt, 8, AW - 8); p.y = clamp(p.y + my * ST.spd * dt, 14, AH - 2);
+  if (p.dashCd > 0) p.dashCd -= dt;
+  if (p.dashT > 0) { p.dashT -= dt; mx = p.ddx * 4.4; my = p.ddy * 4.4; G.ghosts.push({ x: p.x, y: p.y, t: 0, f: p.face }); }
+  for (let i = G.ghosts.length - 1; i >= 0; i--) { G.ghosts[i].t += dt; if (G.ghosts[i].t > 0.25) G.ghosts.splice(i, 1); }
+  const pspd = ST.spd * (G.hasteT > 0 ? 1.3 : 1);
+  p.x = clamp(p.x + mx * pspd * dt, 8, AW - 8); p.y = clamp(p.y + my * pspd * dt, 14, AH - 2);
   for (const o of props) if (o.solid) { const dx = p.x - o.x, dy = p.y - o.y, d = Math.hypot(dx, dy); if (d < o.r + 5 && d > 0) { p.x = o.x + dx / d * (o.r + 5); p.y = o.y + dy / d * (o.r + 5); } }
   p.anim += dt * (p.moving ? 9 : 5);
   if (p.inv > 0) p.inv -= dt; if (p.hurtT > 0) p.hurtT -= dt;
   p.hp = Math.min(ST.maxhp, p.hp + ST.regen * dt);
   if (G.redT > 0) G.redT -= dt; if (G.flashT > 0) G.flashT -= dt;
+  G.fzIdle += dt; if (G.fzIdle > 2.5) G.fz = Math.max(0, G.fz - 0.1 * dt);
+  if (G.frenzyT > 0) G.frenzyT -= dt; else if (G.fz >= 1) { G.fz = 0; G.frenzyT = 8; banner(T('frenzy')); sfx('fanfare', 0.8, 0); }
+  if (G.freezeT > 0) G.freezeT -= dt; if (G.hasteT > 0) G.hasteT -= dt;
+  for (let i = G.risers.length - 1; i >= 0; i--) {
+    const r = G.risers[i]; r.t -= dt;
+    if (r.t <= 0) { G.risers.splice(i, 1); if (G.enemies.length < 300) { const e = spawnEnemy(r.type, r.x, r.y); e.risen = true; e.hp = e.maxhp = e.maxhp * 0.6; e.flash = 0.2; burst(r.x, r.y - 6, 10, ['#fdf7ed', '#cae6f5', '#aa8d7a'], 60, 0.4, 0); } }
+  }
 
   if (!G.won) spawner(dt);
   buildGrid();
@@ -1014,7 +1158,10 @@ function update(dt) {
       if (od < e.r + 5 && od > 0) { p.x = e.x + ox / od * (e.r + 5); p.y = e.y + oy / od * (e.r + 5); }
       continue;
     }
-    e.anim += dt * 8; if (e.flash > 0) e.flash -= dt;
+    if (e.flash > 0) e.flash -= dt;
+    if (e.stunT > 0) { e.stunT -= dt; e.kbx *= Math.pow(0.0005, dt); e.kby *= Math.pow(0.0005, dt); continue; }
+    if (G.freezeT > 0 && !e.boss) continue;
+    e.anim += dt * 8;
     let dx = p.x - e.x, dy = p.y - e.y; const d = Math.hypot(dx, dy) || 1;
     let sp = e.spd;
     if (e.swarm) { e.swarm.t -= dt; if (e.swarm.t <= 0) e.swarm = null; }
@@ -1023,10 +1170,11 @@ function update(dt) {
       if (e.dash > 0) { e.dash -= dt; sp *= 3.4; }
       else if (e.tele > 0) { e.tele -= dt; sp = 0; e.flash = Math.max(e.flash, (e.tele * 10 | 0) % 2 ? 0.05 : 0); if (e.tele <= 0) { e.dash = 0.65; e.dx = dx / d; e.dy = dy / d; sfx('impact', 0.7, 0); } }
       else if (e.dashT <= 0) { e.tele = 0.55; e.dashT = rnd(3.5, 5.5); }
-      if (e.summonT <= 0 && e.type !== 'ogre') { e.summonT = 7; const st = e.type === 'big_zombie' ? 'tiny_zombie' : 'imp'; for (let k = 0; k < 6; k++) spawnEnemy(st, e.x + rnd(-20, 20), e.y + rnd(-14, 14)); }
+      const st = EN[e.type].summon; if (e.summonT <= 0 && st) { e.summonT = 7; for (let k = 0; k < 6; k++) spawnEnemy(st, e.x + rnd(-20, 20), e.y + rnd(-14, 14)); }
       if (e.dash > 0) { dx = e.dx; dy = e.dy; }
     }
-    const nx = e.dash > 0 ? dx : dx / d, ny = e.dash > 0 ? dy : dy / d;
+    let nx = e.dash > 0 ? dx : dx / d, ny = e.dash > 0 ? dy : dy / d;
+    if (e.charge) { e.charge.t -= dt; nx = e.charge.vx; ny = (dy / d) * 0.25; sp *= 2.4; if (e.charge.t <= 0) e.charge = null; }
     e.x += (nx * sp + e.kbx) * dt; e.y += (ny * sp + e.kby) * dt;
     e.kbx *= Math.pow(0.0005, dt); e.kby *= Math.pow(0.0005, dt);
     if (Math.abs(nx) > 0.1) e.face = nx > 0 ? 1 : -1;
@@ -1044,13 +1192,13 @@ function update(dt) {
     // contact
     if (d < e.r + 6) hurtPlayer(e.dmg);
     // recycle stragglers
-    if (!e.boss && !e.elite && e.type !== 'mimic' && d > farR) { const [x, y] = spawnPos(); e.x = x; e.y = y; }
+    if (!e.boss && !e.elite && !e.charge && e.type !== 'mimic' && d > farR) { const [x, y] = spawnPos(); e.x = x; e.y = y; }
   }
 
   // spike traps
   for (const sk of spikes) {
     if (spikeFrame(sk, G.t) !== 3) continue;
-    if (Math.abs(p.x - sk.x) < 7 && Math.abs(p.y - 3 - sk.y) < 7) hurtPlayer(8 * STG().hp);
+    if (Math.abs(p.x - sk.x) < 7 && Math.abs(p.y - 3 - sk.y) < 7) hurtPlayer(8 * SHP());
     queryR(sk.x, sk.y, 12, e => { if (e.static || e.boss || Math.abs(e.x - sk.x) > 8 || Math.abs(e.y - 3 - sk.y) > 8) return; if ((e.spikeT || 0) > G.t) return; e.spikeT = G.t + 0.5; damage(e, 30, null, 0, -1, 0.3); });
   }
   if (G.rushT > 0) G.rushT -= dt;
@@ -1062,15 +1210,19 @@ function update(dt) {
     if (k.k === 'coin') {
       if (!k.pull && d < mag) { k.pull = true; k.vx = -dx / d * 60; k.vy = -dy / d * 60; }
       if (k.pull) { const acc = 900; k.vx += dx / d * acc * dt; k.vy += dy / d * acc * dt; const v = Math.hypot(k.vx, k.vy), mv = 320; if (v > mv) { k.vx *= mv / v; k.vy *= mv / v; } k.x += k.vx * dt; k.y += k.vy * dt; }
-      if (d < 7) { G.pickups.splice(i, 1); G.gold += k.v * ST.greed * STG().gold; gainXP(k.v); sfx('coin', 0.28, 0.1, 0.035); }
+      if (d < 7) { G.pickups.splice(i, 1); G.gold += k.v * ST.greed * SGOLD(); gainXP(k.v); sfx('coin', 0.28, 0.1, 0.035); }
     } else if (d < (k.k === 'mimic' ? 26 : 12)) {
       G.pickups.splice(i, 1);
       if (k.k === 'heart') { p.hp = Math.min(ST.maxhp, p.hp + 30); sfx('heal', 0.8, 0); G.nums.push({ x: p.x, y: p.y - 30, v: '+30', t: 0, heal: true }); }
       else if (k.k === 'keg') nuke(false);
       else if (k.k === 'chest') { openChest(); }
+      else if (k.k === 'pfreeze') { G.freezeT = 4; G.flashT = 0.1; banner(T('frozen')); sfx('pick', 0.9, 0); }
+      else if (k.k === 'phaste') { G.hasteT = 8; banner(T('hasted')); sfx('pick', 0.9, 0); }
+      else if (k.k === 'pmagnet') { for (const c of G.pickups) if (c.k === 'coin' && !c.pull) { c.pull = true; c.vx = 0; c.vy = 0; } banner(T('vacuum')); sfx('coins', 0.9, 0); }
       else if (k.k === 'mimic') { const m = spawnEnemy('mimic', k.x, k.y); m.flash = 0.2; sfx('impact', 1, 0); G.shake = 0.4; banner(L().mimic); }
     }
   }
+  for (const sh of G.shrines) if (!sh.used && state.mode === 'play' && !G.over && dist2(p.x, p.y, sh.x, sh.y) < 15 * 15) { sh.used = true; openShrine(); break; }
   // fx
   for (let i = G.parts.length - 1; i >= 0; i--) { const q = G.parts[i]; q.t += dt; q.vy += (q.g || 0) * dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= 0.96; if (q.t > q.life) G.parts.splice(i, 1); }
   for (let i = G.nums.length - 1; i >= 0; i--) { const n = G.nums[i]; n.t += dt; if (n.t > 0.7) G.nums.splice(i, 1); }
@@ -1133,8 +1285,10 @@ function render(attract) {
       spr(fr, X, Y); if (k.v >= 3) spr(fr, X + 2, Y - 2); if (k.v >= 8) spr(fr, X - 2, Y - 3);
     } else if (k.k === 'heart') spr('ui_heart_full', X, Y - Math.round(Math.abs(Math.sin(tnow * 3)) * 2));
     else if (k.k === 'keg') spr('bomb_f' + ((tnow * 6 | 0) % 3), X, Y);
+    else if (POT[k.k]) spr(POT[k.k], X, Y - Math.round(Math.abs(Math.sin(tnow * 3 + k.x)) * 2));
     else if (k.k === 'chest' || k.k === 'mimic') { shadow(X, Y, 14); spr('chest_full_open_anim_f0', X, Y - Math.round(Math.abs(Math.sin(tnow * 4)) * 2)); if ((tnow * 4 | 0) % 2) vctx.fillStyle = '#facb3e', vctx.fillRect(X + 6, Y - 18, 1, 1); }
   }
+  if (!attract) for (const r of G.risers) if (inView(r.x, r.y)) spr('skull', r.x - cx, r.y - cy, { alpha: ((tnow * 10 | 0) % 2) ? 0.9 : 0.45 });
   // depth-sorted actors
   const list = [];
   for (const o of props) if (!o.decal && inView(o.x, o.y, 60)) list.push({ y: o.y, d: () => spr(o.name, o.x - cx, o.y - cy) });
@@ -1142,6 +1296,7 @@ function render(attract) {
   const src = attract ? ATTRACT.mobs : G.enemies;
   for (const e of src) if (inView(e.x, e.y)) list.push({ y: e.y, d: () => drawEnemy(e, cx, cy) });
   if (!attract) {
+    for (const sh of G.shrines) if (inView(sh.x, sh.y, 40)) list.push({ y: sh.y, d: () => { const f = frames('angel', 'idle'); shadow(sh.x - cx, sh.y - cy, 12); spr(f[(tnow * 6 | 0) % f.length], sh.x - cx, sh.y - cy - 5 - Math.round(Math.sin(tnow * 2 + sh.x) * 2), { alpha: sh.used ? 0.28 : 1 }); } });
     list.push({ y: G.p.y, d: () => drawPlayer(cx, cy) });
     for (const s of G.shots) if (s.kind === 'bomb' && s.t >= 0) list.push({ y: s.y, d: () => { shadow(s.x - cx, s.y - cy, 8); spr('bomb_f' + (s.t < s.fly ? 0 : ((s.t * 12 | 0) % 2) + 1), s.x - cx, s.y - cy - (s.z || 0)); } });
   } else list.push({ y: ATTRACT.hero.y, d: () => { shadow(ATTRACT.hero.x - cx, ATTRACT.hero.y - cy, 10); const f = frames(HEROES[SV.hero].spr, 'idle'); spr(f[(tnow * 5 | 0) % f.length], ATTRACT.hero.x - cx, ATTRACT.hero.y - cy); } });
@@ -1154,6 +1309,7 @@ function render(attract) {
     // projectiles
     for (const s of G.shots) {
       if (s.t < 0 || s.kind === 'bomb') continue;
+      if (s.kind === 'orb') { const X = Math.round(s.x - cx), Y = Math.round(s.y - cy); vctx.fillStyle = s.evo ? '#da4e38' : '#49a790'; vctx.fillRect(X - 2, Y - 1, 4, 2); vctx.fillRect(X - 1, Y - 2, 2, 4); vctx.fillStyle = s.evo ? '#facb3e' : '#cae6f5'; vctx.fillRect(X - 1, Y - 1, 2, 2); continue; }
       if (s.kind === 'axe') sprRot(s.spr, s.x - cx, s.y - cy, s.rot, -AT[s.spr][3] / 2);
       else sprRot(s.spr, s.x - cx, s.y - cy, s.rot, -AT[s.spr][3] / 2);
     }
@@ -1162,7 +1318,7 @@ function render(attract) {
     // blasts
     for (const b of G.blasts) {
       if (b.t < 0) continue;
-      void b;
+      if (b.ring) pixelRing(b.x - cx, b.y - cy, b.r * Math.min(1, b.t / b.life + 0.3), b.t < b.life * 0.5 ? '#fdf7ed' : '#aa8d7a', 1);
     }
     for (const q of G.parts) { vctx.globalAlpha = clamp(1 - q.t / q.life + 0.3, 0, 1); vctx.fillStyle = q.c; vctx.fillRect(Math.round(q.x - cx), Math.round(q.y - cy), q.sz, q.sz); }
     vctx.globalAlpha = 1;
@@ -1183,6 +1339,7 @@ function render(attract) {
     vctx.fillStyle = '#222'; vctx.fillRect(X - 1, Y - 1, bw + 2, 4);
     vctx.fillStyle = '#62232f'; vctx.fillRect(X, Y, bw, 2);
     vctx.fillStyle = '#da4e38'; vctx.fillRect(X, Y, Math.round(bw * clamp(p.hp / ST.maxhp, 0, 1)), 2);
+    if (p.dashCd > 0) { vctx.fillStyle = '#222'; vctx.fillRect(X - 1, Y + 3, bw + 2, 3); vctx.fillStyle = '#72d6ce'; vctx.fillRect(X, Y + 4, Math.round(bw * clamp(1 - p.dashCd / ST.dashCd, 0, 1)), 1); }
     // off-screen chest pointer
     for (const k of G.pickups) if ((k.k === 'chest' || k.k === 'mimic') && !(k.x > cx && k.x < cx + VW && k.y > cy && k.y < cy + VH)) {
       const a = Math.atan2(k.y - p.y, k.x - p.x); const ex = clamp(k.x - cx, 10, VW - 10), ey = clamp(k.y - cy, 22, VH - 10);
@@ -1214,6 +1371,7 @@ function drawEnemy(e, cx, cy) {
     for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) spr(name, X + ox, Y + oy, { red: true, flip, scale: s });
   }
   spr(name, X, Y, { flip, scale: e.sc, flash: e.flash > 0 });
+  if (e.hitCd && G && state.mode !== 'title' && !e.boss && (G.freezeT > 0 || e.stunT > 0)) spr(name, X, Y, { flip, scale: e.sc, ice: true, alpha: 0.5 });
   if ((e.elite || e.boss) && e.hp < e.maxhp && !e.boss) {
     const bw = 20, bx = Math.round(X - bw / 2), by = Math.round(Y - e.h * e.sc - 5);
     vctx.fillStyle = '#222'; vctx.fillRect(bx - 1, by - 1, bw + 2, 3); vctx.fillStyle = '#da4e38'; vctx.fillRect(bx, by, Math.round(bw * e.hp / e.maxhp), 1);
@@ -1224,8 +1382,9 @@ function drawPlayer(cx, cy) {
   const f = p.hurtT > 0 ? [`${H.spr}_hit_anim_f0`] : frames(H.spr, p.moving ? 'run' : 'idle');
   const name = f[(p.anim | 0) % f.length];
   const X = p.x - cx, Y = p.y - cy;
+  for (const g of G.ghosts) spr(name, g.x - cx, g.y - cy, { flip: g.f < 0, flash: true, alpha: 0.4 * (1 - g.t / 0.25) });
   shadow(X, Y, 12);
-  if (p.inv > 0 && ((p.inv * 20) | 0) % 2) return;
+  if (p.inv > 0 && p.dashT <= 0 && ((p.inv * 20) | 0) % 2) return;
   spr(name, X, Y, { flip: p.face < 0, flash: p.hurtT > 0.15 });
 }
 function drawWeaponsFx(cx, cy) {
@@ -1233,8 +1392,10 @@ function drawWeaponsFx(cx, cy) {
   for (const s of G.swings) {
     if (s.t < 0) continue;
     const ox = p.x - cx, oy = p.y - 10 - cy;
+    if (s.kind === 'slam') { const k = clamp(s.t / s.dur, 0, 1); sprRot(s.spr, ox, oy + 2, -Math.PI / 2 + p.face * k * 2.3, 5); continue; }
     if (s.kind === 'thrust') {
       const L = s.len * (s.ext || 0), h = AT[s.spr][3];
+      if (s.streak) { const cxs = Math.cos(s.ang), sys = Math.sin(s.ang); vctx.fillStyle = '#fdf7ed'; for (let d = 8; d < L - 4; d += 2) { vctx.globalAlpha = 0.25 + 0.6 * d / Math.max(1, L); vctx.fillRect(Math.round(ox + cxs * d), Math.round(oy + sys * d), 1, 1); } vctx.globalAlpha = 1; }
       sprRot(s.spr, ox, oy, s.ang, L - h + 4);
     } else {
       const h = AT[s.spr][3];
@@ -1252,7 +1413,7 @@ function drawLight(cx, cy, attract) {
   lc.globalCompositeOperation = 'source-over'; lc.clearRect(0, 0, VW, VH);
   lc.fillStyle = 'rgba(14,8,18,0.62)'; lc.fillRect(0, 0, VW, VH);
   lc.globalCompositeOperation = 'destination-out';
-  const R = Math.round(Math.max(VW, VH) * 0.42) & ~1;
+  const R = Math.round(Math.max(VW, VH) * 0.42 * (attract ? 1 : (STG().light || 1))) & ~1;
   const ls = lightSprite(R);
   const px = attract ? ATTRACT.hero.x : G.p.x, py = attract ? ATTRACT.hero.y : G.p.y;
   lc.drawImage(ls, Math.round(px - cx - R), Math.round(py - 10 - cy - R));
@@ -1261,6 +1422,7 @@ function drawLight(cx, cy, attract) {
   if (!attract) {
     for (const b of G.blasts) if (b.t >= 0) lc.drawImage(small, Math.round(b.x - cx - 40), Math.round(b.y - cy - 40));
     for (const k of G.pickups) if (k.k === 'chest' || k.k === 'mimic') lc.drawImage(small, Math.round(k.x - cx - 40), Math.round(k.y - 8 - cy - 40));
+    for (const sh of G.shrines) if (!sh.used) lc.drawImage(small, Math.round(sh.x - cx - 40), Math.round(sh.y - 14 - cy - 40));
   }
   vctx.drawImage(LIGHT.canvas, 0, 0);
 }
@@ -1283,6 +1445,10 @@ function hud() {
   const set = (id, v) => { if (hudLast[id] !== v) { hudLast[id] = v; $(id).textContent = v; } };
   set('timer', fmt(G.t)); set('kills', G.kills); set('gold', Math.floor(G.gold)); set('lvl', 'LV ' + G.lvl);
   $('xpfill').style.width = (G.xp / xpNeed(G.lvl) * 100).toFixed(1) + '%';
+  const fzv = Math.round((G.frenzyT > 0 ? G.frenzyT / 8 : G.fz) * 100), fzo = G.frenzyT > 0;
+  if (hudLast.fz !== fzv) { hudLast.fz = fzv; $('fzfill').style.width = fzv + '%'; }
+  if (hudLast.fzo !== fzo) { hudLast.fzo = fzo; $('fzfill').classList.toggle('on', fzo); }
+  const dcd = G.p.dashCd > 0; if (hudLast.dcd !== dcd) { hudLast.dcd = dcd; $('dashBtn').classList.toggle('cd', dcd); }
   const bb = $('bossbar');
   const alive = G.bossList.filter(b => b.hp > 0);
   if (alive.length) {
@@ -1307,7 +1473,7 @@ function die() {
 function win() {
   G.won = true; G.over = true; banner(L().cleared); playMusic('ending');
   for (const e of G.enemies) if (e.hp > 0 && !e.static) { e.hp = 0; e.elite = false; e.boss = false; e.type === 'mimic' && (e.type = 'imp'); kill(e); }
-  for (const k of G.pickups) if (k.k === 'coin') { G.gold += k.v * ST.greed * STG().gold; k.pull = true; }
+  for (const k of G.pickups) if (k.k === 'coin') { G.gold += k.v * ST.greed * SGOLD(); k.pull = true; }
   sfx('coins', 1, 0);
   state.mode = 'dying'; G.dieT = 3.2;
 }
@@ -1324,13 +1490,18 @@ function finishRun() {
   const nextId = Object.keys(STAGES).find(k => STAGES[k].need === G.stage);
   const wasOpen = nextId ? stageOpen(nextId) : true;
   const mr = mapRec(G.stage);
-  SV.maps[G.stage] = { best: Math.max(mr.best, G.t), cleared: mr.cleared || G.won };
+  SV.maps[G.stage] = { best: Math.max(mr.best, G.t), cleared: mr.cleared || G.won, tor: G.won ? Math.max(mr.tor || 0, Math.min(5, G.tor + 1)) : (mr.tor || 0) };
+  if (G.won && G.tor > 0) SV.stats.torMax = Math.max(SV.stats.torMax || 0, G.tor);
   persist();
+  const qd = checkQuests(), qe = $('eQuests'); qe.innerHTML = '';
+  qd.slice(0, 4).forEach(q => { const d = document.createElement('div'); d.textContent = T('questDone', qText(q)) + '  ' + T('gold', q.r); qe.appendChild(d); });
+  if (qd.length > 4) { const d = document.createElement('div'); d.textContent = '+' + (qd.length - 4) + ' · ' + T('gold', qd.slice(4).reduce((a, q) => a + q.r, 0)); qe.appendChild(d); }
+  if (qd.length) sfx('coins', 0.8, 0);
   $('endTitle').textContent = G.won ? L().win : L().dead; $('endTitle').className = G.won ? 'gold' : '';
   $('eTime').textContent = fmt(G.t); $('eLvl').textContent = G.lvl; $('eKills').textContent = G.kills; $('eGold').textContent = '+' + earned;
   gpStop(); if (G.won) ADS.call(S => S.game.happytime());
   const bd = $('bDouble');
-  bd.style.display = earned > 0 && !STANDALONE ? '' : 'none'; bd.disabled = false; bd.textContent = L().adDouble(earned);
+  bd.style.display = 'none'; bd.disabled = true;
   bd.onclick = () => {
     if (bd.disabled) return; bd.disabled = true;
     ADS.show('rewarded', () => { SV.coins += earned; persist(); $('eGold').textContent = '+' + earned * 2; bd.style.display = 'none'; sfx('coins', 1, 0); refreshTitle(); }, () => { bd.textContent = L().adFail; });
@@ -1366,8 +1537,7 @@ function applyLang() {
   refreshTitle();
 }
 function refreshTitle() {
-  $('bankTitle').textContent = SV.coins ? `${SV.coins} ◆` : '';
-  $('bankTitle').textContent = SV.coins ? (SV.settings.lang === 'ko' ? `코인 ${SV.coins}` : `${SV.coins} coins`) : '';
+  $('bankTitle').textContent = SV.coins ? T('coinsN', SV.coins) : '';
   $('recTitle').textContent = SV.best.time ? L().best(fmt(SV.best.time)) : '';
   document.querySelectorAll('.bank').forEach(b => b.textContent = SV.coins);
 }
@@ -1377,6 +1547,29 @@ function toTitle() {
 }
 $('bStart').onclick = () => { audioUnlock(); buildHeroes(); go('sHero'); };
 $('bArmory').onclick = () => { audioUnlock(); buildShop(); go('sArmory'); };
+$('bQuests').onclick = () => { audioUnlock(); buildQuests(); go('sQuests'); };
+function buildQuests() {
+  checkQuests();
+  const box = $('qlist'); box.innerHTML = '';
+  QUESTS.slice().sort((a, b) => (SV.q[a.id] ? 1 : 0) - (SV.q[b.id] ? 1 : 0)).forEach(q => {
+    const done = !!SV.q[q.id], pr = Math.min(qProg(q), qGoal(q));
+    const d = document.createElement('div'); d.className = 'quest' + (done ? ' done' : '');
+    const t = document.createElement('div'); t.className = 't'; t.textContent = qText(q);
+    const pg = document.createElement('div'); pg.className = 'p'; pg.textContent = done ? T('claimed') : T('progress', pr, qGoal(q));
+    const r = document.createElement('div'); r.className = 'r'; r.appendChild(iconCanvas('coin_anim_f0', U * 5)); r.append(String(q.r));
+    d.append(t, pg, r); box.appendChild(d);
+  });
+  refreshTitle();
+}
+function buildLangs() {
+  const box = $('langs'); box.innerHTML = '';
+  Object.keys(I18).forEach(k => {
+    const b = document.createElement('button'); b.className = 'btn small' + (SV.settings.lang === k ? ' on' : ''); b.textContent = I18[k]._name;
+    b.onclick = () => { SV.settings.lang = k; persist(); applyLang(); syncSettings(); sfx('select', 0.5, 0); back(); };
+    box.appendChild(b);
+  });
+}
+$('oLangBtn').onclick = () => { buildLangs(); screenStack.push(curScreen); showScreen('sLang'); sfx('select', 0.5, 0); };
 $('bSettings').onclick = () => { audioUnlock(); syncSettings(); go('sSettings'); };
 $('bCredits').onclick = () => { audioUnlock(); go('sCredits'); };
 
@@ -1395,7 +1588,7 @@ function buildHeroes() {
     if (!owned) { const p = document.createElement('div'); p.className = 'price'; p.appendChild(iconCanvas('coin_anim_f0', U * 5)); p.append(String(h.cost)); b.appendChild(p); }
     b.onclick = () => {
       if (!SV.heroes[id]) {
-        if (SV.coins >= h.cost) { SV.coins -= h.cost; SV.heroes[id] = true; SV.hero = id; persist(); sfx('fanfare', 0.8, 0); buildHeroes(); refreshTitle(); }
+        if (SV.coins >= h.cost) { SV.coins -= h.cost; SV.heroes[id] = true; SV.hero = id; persist(); checkQuests(); sfx('fanfare', 0.8, 0); buildHeroes(); refreshTitle(); }
         else { sfx('deny', 0.6, 0); heroInfo(id); }
         return;
       }
@@ -1412,7 +1605,7 @@ function heroInfo(id) {
   const ic = document.createElement('div'); ic.appendChild(iconCanvas(WP[h.weapon].icon, U * 14)); el.appendChild(ic);
   const t = document.createElement('div'); t.innerHTML = '<div class="t"></div><div class="d"></div><div class="d"></div>';
   t.children[0].textContent = nm(h)[0]; t.children[1].textContent = nm(h)[1]; t.children[2].textContent = `${L().start_w}: ${nm(WP[h.weapon])[0]}`;
-  if (!SV.heroes[id]) { const lk = document.createElement('div'); lk.className = 'lock'; lk.textContent = L().unlockCost(h.cost, SV.coins); t.appendChild(lk); }
+  if (!SV.heroes[id]) { const lk = document.createElement('div'); lk.className = 'lock'; lk.textContent = SV.coins >= h.cost ? T('lockedCan', h.cost) : T('lockedNeed', h.cost, SV.coins); t.appendChild(lk); }
   el.appendChild(t);
 }
 $('bGo').onclick = () => { if (!SV.heroes[SV.hero]) SV.hero = 'knight'; buildStages(); go('sStage'); };
@@ -1422,13 +1615,22 @@ function buildStages() {
   Object.keys(STAGES).forEach(id => {
     const st = STAGES[id], open = stageOpen(id), rec = mapRec(id);
     const b = document.createElement('button'); b.className = 'stage' + (SV.stage === id ? ' sel' : '') + (open ? '' : ' locked');
-    const ic = document.createElement('div'); ic.className = 'sic'; ic.appendChild(iconCanvas(st.icon, U * 26)); b.appendChild(ic);
+    const ic = document.createElement('div'); ic.className = 'sic'; ic.appendChild(iconCanvas(st.icon, U * 20)); b.appendChild(ic);
     const tx = document.createElement('div'); tx.className = 'stx';
     const t = document.createElement('div'); t.className = 't'; t.textContent = nm(st)[0];
     const d = document.createElement('div'); d.className = 'd'; d.textContent = open ? nm(st)[1] : L().lockedBy(nm(STAGES[st.need])[0]);
-    const m = document.createElement('div'); m.className = 'm'; m.textContent = L().stageMods(st.hp, st.gold);
-    const r = document.createElement('div'); r.className = 'r'; r.textContent = rec.best ? `${L().bestOn(fmt(rec.best))}${rec.cleared ? ' · ' + L().clearedMark : ''}` : L().noRecord;
-    tx.append(t, d, m, r); b.appendChild(tx);
+    const tl = SV.stage === id ? curTor(id) : 0;
+    const m = document.createElement('div'); m.className = 'm'; m.textContent = L().stageMods(num(st.hp * (1 + 0.25 * tl)), num(st.gold * (1 + 0.2 * tl)));
+    const r = document.createElement('div'); r.className = 'r'; r.textContent = rec.best ? `${L().best(fmt(rec.best))}${rec.cleared ? ' · ' + L().clearedMark : ''}` : L().noRecord;
+    tx.append(t, d, m, r);
+    if (SV.stage === id && open && (rec.tor || 0) > 0) {
+      const tr = document.createElement('div'); tr.className = 'tor';
+      const mk = (txt, dl) => { const x = document.createElement('span'); x.className = 'tbtn'; x.textContent = txt; x.onclick = ev => { ev.stopPropagation(); SV.tor[id] = clamp(tl + dl, 0, Math.min(5, rec.tor)); persist(); sfx('move', 0.5, 0); buildStages(); }; return x; };
+      const lab = document.createElement('span'); lab.className = 'tlab'; lab.textContent = T('torment', tl);
+      tr.append(mk('-', -1), lab, mk('+', 1)); tx.appendChild(tr);
+      const td = document.createElement('div'); td.className = 'tord'; td.textContent = T('tormentD'); tx.appendChild(td);
+    }
+    b.appendChild(tx);
     b.onclick = () => { if (!open) { sfx('deny', 0.6, 0); return; } SV.stage = id; persist(); sfx('select', 0.5, 0); buildStages(); };
     box.appendChild(b);
   });
@@ -1462,12 +1664,11 @@ $('bRefund').onclick = () => {
 function syncSettings() {
   $('oMusic').value = SV.settings.music; $('oSfx').value = SV.settings.sfx;
   const seg = (id, v) => document.querySelectorAll(`#${id} button`).forEach(b => b.classList.toggle('on', String(b.dataset.v) === String(v)));
-  seg('oLang', SV.settings.lang); seg('oShake', SV.settings.shake); seg('oNums', SV.settings.nums);
+  $('oLangBtn').textContent = I18[SV.settings.lang]._name; seg('oShake', SV.settings.shake); seg('oNums', SV.settings.nums);
 }
 $('oMusic').oninput = e => { SV.settings.music = +e.target.value; setVolumes(); persist(); };
 $('oSfx').oninput = e => { SV.settings.sfx = +e.target.value; setVolumes(); persist(); };
 $('oSfx').onchange = () => sfx('coin', 0.8, 0);
-document.querySelectorAll('#oLang button').forEach(b => b.onclick = () => { SV.settings.lang = b.dataset.v; persist(); syncSettings(); applyLang(); sfx('select', 0.5, 0); });
 document.querySelectorAll('#oShake button').forEach(b => b.onclick = () => { SV.settings.shake = +b.dataset.v; persist(); syncSettings(); sfx('select', 0.5, 0); });
 document.querySelectorAll('#oNums button').forEach(b => b.onclick = () => { SV.settings.nums = +b.dataset.v; persist(); syncSettings(); sfx('select', 0.5, 0); });
 
@@ -1525,7 +1726,7 @@ function updateAttract(dt) {
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(1 / 30, (now - last) / 1000); last = now;
-  if (state.mode === 'title' || ['sHero', 'sArmory', 'sSettings', 'sCredits'].includes(curScreen) && state.mode !== 'play') {
+  if (state.mode === 'title' || ['sHero', 'sArmory', 'sSettings', 'sCredits', 'sQuests', 'sLang', 'sStage'].includes(curScreen) && state.mode !== 'play') {
     if (V && sheet.complete) { updateAttract(dt); render(ATTRACT.cam); }
     heroAnims.forEach(h => { const x = h.c.getContext('2d'); x.clearRect(0, 0, h.c.width, h.c.height); const f = AT[h.fr[((now / 110) | 0) % h.fr.length]]; x.drawImage(sheet, f[0], f[1], f[2], f[3], 0, 0, f[2], f[3]); });
   } else if (G && (state.mode === 'play' || state.mode === 'level' || state.mode === 'chest' || state.mode === 'dying' || state.mode === 'end' || state.mode === 'offer')) {

@@ -25,6 +25,7 @@
   <!-- HUD -->
   <div id="hud">
     <div id="xpbar"><i id="xpfill"></i><span id="lvl">LV 1</span></div>
+    <div id="fzbar"><i id="fzfill"></i></div>
     <div id="hudTop">
       <div class="hudL">
         <div id="inv"></div>
@@ -38,6 +39,7 @@
     </div>
     <div id="banner"></div>
     <div id="stick"><i></i></div>
+    <button id="dashBtn" aria-label="Dash">»</button>
     <div id="ctrlHint"></div>
   </div>
 
@@ -47,6 +49,7 @@
     <nav class="menu">
       <button class="btn big" id="bStart" data-t="start"></button>
       <button class="btn" id="bArmory" data-t="armory"></button>
+      <button class="btn" id="bQuests" data-t="quests"></button>
       <button class="btn" id="bSettings" data-t="settings"></button>
       <button class="btn" id="bCredits" data-t="credits"></button>
     </nav>
@@ -87,9 +90,27 @@
       <h2 data-t="settings"></h2>
       <div class="opt"><span data-t="music"></span><input type="range" id="oMusic" min="0" max="100"></div>
       <div class="opt"><span data-t="sfx"></span><input type="range" id="oSfx" min="0" max="100"></div>
-      <div class="opt"><span data-t="lang"></span><div class="seg" id="oLang"><button data-v="en">EN</button><button data-v="ko">한국어</button></div></div>
+      <div class="opt"><span data-t="lang"></span><button class="btn small" id="oLangBtn"></button></div>
       <div class="opt"><span data-t="shake"></span><div class="seg" id="oShake"><button data-v="0" data-t="off"></button><button data-v="1" data-t="on"></button></div></div>
       <div class="opt"><span data-t="numbers"></span><div class="seg" id="oNums"><button data-v="0" data-t="off"></button><button data-v="1" data-t="on"></button></div></div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- quests -->
+  <section class="screen dim" id="sQuests">
+    <div class="panel wide">
+      <div class="phead"><h2 data-t="quests"></h2><div class="coins"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div></div>
+      <div id="qlist" class="quests"></div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- language -->
+  <section class="screen dim" id="sLang">
+    <div class="panel wide">
+      <h2 data-t="lang"></h2>
+      <div id="langs" class="langs"></div>
       <div class="row end"><button class="btn" data-back data-t="back"></button></div>
     </div>
   </section>
@@ -123,7 +144,7 @@
   <!-- level up -->
   <section class="screen dim" id="sLevel">
     <div class="panel">
-      <h2 class="gold" data-t="levelUp"></h2>
+      <h2 class="gold" id="lvTitle" data-t="levelUp"></h2>
       <div id="choices" class="choices"></div>
       <div class="row center"><button class="btn small" id="bReroll"></button></div>
     </div>
@@ -163,6 +184,7 @@
       </div>
       <div id="eRec" class="rec"></div>
       <div id="eHint" class="hint"></div>
+      <div id="eQuests" class="hint"></div>
       <div id="eWeapons" class="dmgTable"></div>
       <div class="row end"><button class="btn" id="bEndTitle" data-t="title"></button><button class="btn" id="bEndArmory" data-t="armory"></button><button class="btn" id="bDouble"></button><button class="btn big" id="bAgain" data-t="again"></button></div>
     </div>
@@ -171,6 +193,7 @@
 </div>
 
 <script src="assets/atlas.js"></script>
+<script src="i18n.js"></script>
 <script src="game.js"></script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));</script>
 </body>

@@ -29,6 +29,7 @@
     <div id="hudTop">
       <div class="hudL">
         <div id="inv"></div>
+        <div id="party"></div>
       </div>
       <div class="hudC"><div id="timer">00:00</div><div id="bossbar"><span id="bossName"></span><div><i id="bossFill"></i></div></div></div>
       <div class="hudR">
@@ -41,6 +42,7 @@
     <div id="stick"><i></i></div>
     <button id="dashBtn" aria-label="Dash">»</button>
     <div id="ctrlHint"></div>
+    <div id="netWait" data-t="pWaitHost"></div>
   </div>
 
   <!-- title -->
@@ -48,12 +50,48 @@
     <div class="logo"><h1>DUNGEON MOWER</h1><div class="sub" data-t="sub"></div></div>
     <nav class="menu">
       <button class="btn big" id="bStart" data-t="start"></button>
-      <button class="btn" id="bArmory" data-t="armory"></button>
-      <button class="btn" id="bQuests" data-t="quests"></button>
-      <button class="btn" id="bSettings" data-t="settings"></button>
-      <button class="btn" id="bCredits" data-t="credits"></button>
+      <div class="minirow">
+        <button class="btn" id="bArmory" data-t="armory"></button>
+        <button class="btn" id="bQuests" data-t="quests"></button>
+        <button class="btn" id="bSettings" data-t="settings"></button>
+      </div>
+      <button class="link" id="bCredits" data-t="credits"></button>
     </nav>
     <div class="titleFoot"><span id="bankTitle"></span><span id="recTitle"></span></div>
+  </section>
+
+  <!-- mode select -->
+  <section class="screen dim" id="sMode">
+    <div class="panel wide">
+      <h2 data-t="chooseMode"></h2>
+      <div class="modes">
+        <button class="mode" id="mSolo"><b data-t="modeSolo"></b><span data-t="modeSoloD"></span></button>
+        <button class="mode daily" id="mDaily"><b data-t="modeDaily"></b><span data-t="modeDailyD"></span><em id="dailyInfo"></em><em id="dailyBest" class="gold"></em></button>
+        <button class="mode" id="mParty"><b data-t="modeParty"></b><span data-t="modePartyD"></span></button>
+      </div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- online party -->
+  <section class="screen dim" id="sParty">
+    <div class="panel wide">
+      <h2 data-t="modeParty"></h2>
+      <div id="pOut">
+        <div class="opt"><span data-t="pName"></span><input id="pName" maxlength="12" autocomplete="off"></div>
+        <div class="row center"><button class="btn big" id="pCreate" data-t="pCreate"></button></div>
+        <div class="opt"><span data-t="pCodeL"></span><input id="pCode" maxlength="6" autocomplete="off" style="text-transform:uppercase"><button class="btn small" id="pJoin" data-t="pJoin"></button></div>
+      </div>
+      <div id="pIn" style="display:none">
+        <div class="proom"><span data-t="pCodeL"></span><b id="pRoom"></b><button class="btn small" id="pCopy" data-t="pCopy"></button></div>
+        <div class="pstage"><span data-t="chooseStage"></span>: <b id="pStage"></b> <button class="btn small" id="pStageBtn" data-t="pChange"></button></div>
+        <div id="pList" class="plist"></div>
+        <div id="pWait" class="hint"></div>
+        <div class="row center"><button class="btn small" id="pHero" data-t="pHeroBtn"></button><button class="btn small" id="pLeave" data-t="pLeave"></button><button class="btn big" id="pStart" data-t="pStart"></button></div>
+      </div>
+      <div id="pMsg" class="hint"></div>
+      <div class="row end"><button class="btn" id="pBack" data-t="back"></button></div>
+    </div>
   </section>
 
   <!-- heroes -->
@@ -146,6 +184,7 @@
     <div class="panel">
       <h2 class="gold" id="lvTitle" data-t="levelUp"></h2>
       <div id="choices" class="choices"></div>
+      <div id="lvWait" class="hint"></div>
       <div class="row center"><button class="btn small" id="bReroll"></button></div>
     </div>
   </section>

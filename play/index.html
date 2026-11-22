@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#161216">
+<title>Dungeon Mower — Play</title>
+<meta name="description" content="Play Dungeon Mower in your browser. Pixel-art horde survival: one hero, thousands of monsters.">
+<link rel="canonical" href="https://is2ui.github.io/dungeon-mower/play/">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="apple-touch-icon" href="../img/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="icon" href="assets/icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="ui">
+  <!-- loading -->
+  <section class="screen show" id="sLoad"><div class="loadbar"><i id="loadFill"></i></div></section>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="xpbar"><i id="xpfill"></i><span id="lvl">LV 1</span></div>
+    <div id="hudTop">
+      <div class="hudL">
+        <div id="inv"></div>
+      </div>
+      <div class="hudC"><div id="timer">00:00</div><div id="bossbar"><span id="bossName"></span><div><i id="bossFill"></i></div></div></div>
+      <div class="hudR">
+        <div class="stat"><span class="ico" data-icon="skull"></span><b id="kills">0</b></div>
+        <div class="stat"><span class="ico" data-icon="coin_anim_f0"></span><b id="gold">0</b></div>
+        <button id="pauseBtn" class="pbtn" aria-label="Pause"><span></span><span></span></button>
+      </div>
+    </div>
+    <div id="banner"></div>
+    <div id="stick"><i></i></div>
+    <div id="ctrlHint"></div>
+  </div>
+
+  <!-- title -->
+  <section class="screen" id="sTitle">
+    <div class="logo"><h1>DUNGEON MOWER</h1><div class="sub" data-t="sub"></div></div>
+    <nav class="menu">
+      <button class="btn big" id="bStart" data-t="start"></button>
+      <button class="btn" id="bArmory" data-t="armory"></button>
+      <button class="btn" id="bSettings" data-t="settings"></button>
+      <button class="btn" id="bCredits" data-t="credits"></button>
+    </nav>
+    <div class="titleFoot"><span id="bankTitle"></span><span id="recTitle"></span></div>
+  </section>
+
+  <!-- heroes -->
+  <section class="screen dim" id="sHero">
+    <div class="panel wide">
+      <div class="phead"><h2 data-t="chooseHero"></h2><div class="coins"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div></div>
+      <div id="heroes" class="grid"></div>
+      <div class="heroInfo" id="heroInfo"></div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button><button class="btn big" id="bGo" data-t="go"></button></div>
+    </div>
+  </section>
+
+  <!-- stage select -->
+  <section class="screen dim" id="sStage">
+    <div class="panel wide">
+      <div class="phead"><h2 data-t="chooseStage"></h2></div>
+      <div id="stages" class="stages"></div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button><button class="btn big" id="bGo2" data-t="go"></button></div>
+    </div>
+  </section>
+
+  <!-- armory -->
+  <section class="screen dim" id="sArmory">
+    <div class="panel wide">
+      <div class="phead"><h2 data-t="armory"></h2><div class="coins"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div></div>
+      <div id="shop" class="grid shopgrid"></div>
+      <div class="row end"><button class="btn small" id="bRefund" data-t="refund"></button><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- settings -->
+  <section class="screen dim" id="sSettings">
+    <div class="panel">
+      <h2 data-t="settings"></h2>
+      <div class="opt"><span data-t="music"></span><input type="range" id="oMusic" min="0" max="100"></div>
+      <div class="opt"><span data-t="sfx"></span><input type="range" id="oSfx" min="0" max="100"></div>
+      <div class="opt"><span data-t="lang"></span><div class="seg" id="oLang"><button data-v="en">EN</button><button data-v="ko">한국어</button></div></div>
+      <div class="opt"><span data-t="shake"></span><div class="seg" id="oShake"><button data-v="0" data-t="off"></button><button data-v="1" data-t="on"></button></div></div>
+      <div class="opt"><span data-t="numbers"></span><div class="seg" id="oNums"><button data-v="0" data-t="off"></button><button data-v="1" data-t="on"></button></div></div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- credits -->
+  <section class="screen dim" id="sCredits">
+    <div class="panel">
+      <h2 data-t="credits"></h2>
+      <div class="credits">
+        <p><b data-t="cArt"></b>0x72 — 16x16 DungeonTileset II (CC0)<br><small>0x72.itch.io/dungeontileset-ii</small></p>
+        <p><b data-t="cMusic"></b>Juhani Junkala — Retro Game Music Pack, The Essential Retro Video Game Sound Effects Collection (CC0)</p>
+        <p><b data-t="cFont"></b>Galmuri — Lee Minseo (SIL OFL 1.1)</p>
+      </div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- pause -->
+  <section class="screen dim" id="sPause">
+    <div class="panel">
+      <h2 data-t="paused"></h2>
+      <div id="pauseInv" class="pauseInv"></div>
+      <nav class="menu">
+        <button class="btn big" id="bResume" data-t="resume"></button>
+        <button class="btn" id="bPSettings" data-t="settings"></button>
+        <button class="btn" id="bGiveUp" data-t="giveUp"></button>
+      </nav>
+    </div>
+  </section>
+
+  <!-- level up -->
+  <section class="screen dim" id="sLevel">
+    <div class="panel">
+      <h2 class="gold" data-t="levelUp"></h2>
+      <div id="choices" class="choices"></div>
+      <div class="row center"><button class="btn small" id="bReroll"></button></div>
+    </div>
+  </section>
+
+  <!-- chest -->
+  <section class="screen dim" id="sChest">
+    <div class="panel chestPanel">
+      <canvas id="chestCv" width="96" height="64"></canvas>
+      <div id="reel" class="reel"></div>
+      <div id="chestOut" class="chestOut"></div>
+      <div class="row center"><button class="btn big" id="bTake" data-t="take"></button></div>
+    </div>
+  </section>
+
+  <!-- revive offer -->
+  <section class="screen dim" id="sOffer">
+    <div class="panel">
+      <h2 data-t="dead"></h2>
+      <nav class="menu">
+        <button class="btn big" id="bAdRevive" data-t="adRevive"></button>
+        <button class="btn" id="bNoRevive" data-t="giveUp"></button>
+      </nav>
+      <div id="offerMsg" class="hint"></div>
+    </div>
+  </section>
+
+  <!-- results -->
+  <section class="screen dim" id="sEnd">
+    <div class="panel wide">
+      <h2 id="endTitle"></h2>
+      <div class="endStats">
+        <div><span data-t="survived"></span><b id="eTime"></b></div>
+        <div><span data-t="level"></span><b id="eLvl"></b></div>
+        <div><span data-t="killed"></span><b id="eKills"></b></div>
+        <div><span data-t="earned"></span><b id="eGold" class="gold"></b></div>
+      </div>
+      <div id="eRec" class="rec"></div>
+      <div id="eHint" class="hint"></div>
+      <div id="eWeapons" class="dmgTable"></div>
+      <div class="row end"><button class="btn" id="bEndTitle" data-t="title"></button><button class="btn" id="bEndArmory" data-t="armory"></button><button class="btn" id="bDouble"></button><button class="btn big" id="bAgain" data-t="again"></button></div>
+    </div>
+  </section>
+  <div id="adPrev"><div><b id="adPrevN">3</b><span id="adPrevTxt"></span></div></div>
+</div>
+
+<script src="assets/atlas.js"></script>
+<script src="game.js"></script>
+<script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));</script>
+</body>
+</html>

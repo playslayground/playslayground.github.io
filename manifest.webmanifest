@@ -1,0 +1,25 @@
+{
+  "name": "Dungeon Mower",
+  "short_name": "Dungeon Mower",
+  "description": "Pixel-art horde survival roguelite. One hero, thousands of monsters.",
+  "id": "/dungeon-mower/",
+  "start_url": "/dungeon-mower/play/",
+  "scope": "/dungeon-mower/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#161216",
+  "theme_color": "#161216",
+  "categories": ["games", "entertainment"],
+  "lang": "en",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "img/shot-1.jpg", "sizes": "1920x1080", "type": "image/jpeg", "form_factor": "wide", "label": "Surrounded by the horde" },
+    { "src": "img/shot-2.jpg", "sizes": "1920x1080", "type": "image/jpeg", "form_factor": "wide", "label": "Weapons spinning around the hero" },
+    { "src": "img/shot-3.jpg", "sizes": "1920x1080", "type": "image/jpeg", "form_factor": "wide", "label": "Boss fight" }
+  ]
+}

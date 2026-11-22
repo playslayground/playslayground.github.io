@@ -30,7 +30,7 @@ const parseSave = raw => {
   if (!o.tor) o.tor = {}; if (!o.q) o.q = {};
   return o;
 };
-const cloudData = () => { try { return ADS.ready && ADS.sdk.data ? ADS.sdk.data : null; } catch (e) { return null; } };
+const cloudData = () => { try { return ADS.ready && ADS.kind === 'cg' && ADS.sdk.data ? ADS.sdk.data : null; } catch (e) { return null; } };
 let SV;
 try { SV = parseSave(localStorage.getItem(SAVE_KEY)); } catch (e) { SV = defSave(); }
 const persist = () => {
@@ -38,6 +38,7 @@ const persist = () => {
   const d = cloudData();
   if (d) { try { d.setItem(SAVE_KEY, str); return; } catch (e) {} }
   try { localStorage.setItem(SAVE_KEY, str); } catch (e) {}
+  try { if (ADS.ready && ADS.kind === 'pg') { const pr = ADS.sdk.storage.set([SAVE_KEY], [str]); if (pr && pr.catch) pr.catch(() => {}); } } catch (e) {}
 };
 // after the CrazyGames SDK is ready, its Data Module is the source of truth (cloud save for signed-in players)
 function loadCloudSave() {
@@ -63,15 +64,15 @@ const statText = d => d.map(([k, v]) => T('st.' + k, v == null ? '' : num(v))).j
 // ------------------------------------------------------------- data
 const HEROES = {
   knight: { name: 'Aldric', spr: 'knight_m', weapon: 'sword', cost: 0, mod: { hp: 1.1 }, desc: [['hp', 10]] },
-  elf: { name: 'Sefa', spr: 'elf_f', weapon: 'bow', cost: 300, mod: { spd: 1.1 }, desc: [['spd', 10]] },
-  dwarf: { name: 'Brom', spr: 'dwarf_m', weapon: 'axe', cost: 600, mod: { armor: 1 }, desc: [['armor', 1]] },
-  wizard: { name: 'Orrin', spr: 'wizzard_m', weapon: 'bombs', cost: 1000, mod: { area: 1.1 }, desc: [['area', 10]] },
-  lizard: { name: 'Kesh', spr: 'lizard_m', weapon: 'spear', cost: 1500, mod: { might: 1.1 }, desc: [['dmg', 10]] },
-  maren: { name: 'Maren', spr: 'knight_f', weapon: 'knives', cost: 2200, mod: { cd: 0.92 }, desc: [['cd', 8]] },
-  hild: { name: 'Hild', spr: 'dwarf_f', weapon: 'hammers', cost: 3000, mod: { regen: 0.3 }, desc: [['regen', 0.3]] },
-  faelan: { name: 'Faelan', spr: 'elf_m', weapon: 'cleaver', cost: 3800, mod: { dash: 0.7 }, desc: [['dash', 30]] },
-  ysolde: { name: 'Ysolde', spr: 'wizzard_f', weapon: 'staff', cost: 4800, mod: { growth: 1.15 }, desc: [['xp', 15]] },
-  sska: { name: 'Sska', spr: 'lizard_f', weapon: 'katana', cost: 6000, mod: { crit: 0.1 }, desc: [['crit', 10]] }
+  elf: { name: 'Sefa', spr: 'elf_f', weapon: 'bow', cost: 600, mod: { spd: 1.1 }, desc: [['spd', 10]] },
+  dwarf: { name: 'Brom', spr: 'dwarf_m', weapon: 'axe', cost: 1200, mod: { armor: 1 }, desc: [['armor', 1]] },
+  wizard: { name: 'Orrin', spr: 'wizzard_m', weapon: 'bombs', cost: 2000, mod: { area: 1.1 }, desc: [['area', 10]] },
+  lizard: { name: 'Kesh', spr: 'lizard_m', weapon: 'spear', cost: 3000, mod: { might: 1.1 }, desc: [['dmg', 10]] },
+  maren: { name: 'Maren', spr: 'knight_f', weapon: 'knives', cost: 4400, mod: { cd: 0.92 }, desc: [['cd', 8]] },
+  hild: { name: 'Hild', spr: 'dwarf_f', weapon: 'hammers', cost: 6000, mod: { regen: 0.3 }, desc: [['regen', 0.3]] },
+  faelan: { name: 'Faelan', spr: 'elf_m', weapon: 'cleaver', cost: 7600, mod: { dash: 0.7 }, desc: [['dash', 30]] },
+  ysolde: { name: 'Ysolde', spr: 'wizzard_f', weapon: 'staff', cost: 9600, mod: { growth: 1.15 }, desc: [['xp', 15]] },
+  sska: { name: 'Sska', spr: 'lizard_f', weapon: 'katana', cost: 12000, mod: { crit: 0.1 }, desc: [['crit', 10]] }
 };
 
 const WP = {
@@ -126,7 +127,7 @@ const SHOP = {
   revival: { icon: 'angel_idle_anim_f0', max: 1, base: 900, desc: [['revive']] },
   insight: { icon: 'flask_yellow', max: 1, base: 1200, desc: [['choice']] }
 };
-const shopCost = (k) => Math.round(SHOP[k].base * (1 + shopLv(k) * 0.9) / 5) * 5;
+const shopCost = (k) => Math.round(SHOP[k].base * 1.6 * (1 + shopLv(k) * 1.25) / 5) * 5;
 const BLESS = {
   wrath: { icon: 'weapon_red_gem_sword', desc: [['dmg', 20]], f: b => { b.might += 0.2; } },
   wind: { icon: 'flask_big_blue', desc: [['cd', 12]], f: b => { b.cd += 0.12; } },
@@ -368,39 +369,76 @@ function playMusic(name, force) {
   a.play().catch(() => {});
 }
 
-// ------------------------------------------------------------- ads (CrazyGames SDK v3; preview fallback)
-const STANDALONE = true;
+// ------------------------------------------------------------- ads (portal builds: CrazyGames SDK v3 or Playgama Bridge; site build: none)
+const PORTAL = window.DM_PORTAL || '';
+const STANDALONE = !PORTAL;
 const ADS = {
-  sdk: null, ready: false, busy: false,
+  sdk: null, ready: false, busy: false, kind: '', pgCb: null, pgGot: false,
   async init() {
     try {
-      const S = window.CrazyGames && window.CrazyGames.SDK; if (!S) return;
-      await S.init();
-      if (S.environment === 'disabled') return;
-      this.sdk = S; this.ready = true;
+      if (PORTAL === 'cg') {
+        const S = window.CrazyGames && window.CrazyGames.SDK; if (!S) return;
+        await S.init();
+        if (S.environment === 'disabled') return;
+        this.sdk = S; this.kind = 'cg'; this.ready = true;
+      } else if (PORTAL === 'pg') {
+        const B = window.bridge; if (!B) return;
+        await B.initialize();
+        this.sdk = B; this.kind = 'pg'; this.ready = true;
+        const fin = ok => { const cb = this.pgCb; this.pgCb = null; if (cb) cb(ok); };
+        B.advertisement.on(B.EVENT_NAME.INTERSTITIAL_STATE_CHANGED, st => { if (st === 'opened') this.mute(true); else if (st === 'closed' || st === 'failed') fin(true); });
+        B.advertisement.on(B.EVENT_NAME.REWARDED_STATE_CHANGED, st => { if (st === 'opened') this.mute(true); else if (st === 'rewarded') this.pgGot = true; else if (st === 'closed') fin(this.pgGot); else if (st === 'failed') fin(false); });
+        try { B.platform.on(B.EVENT_NAME.AUDIO_STATE_CHANGED, on => { this.audioOff = !on; if (!this.busy) this.mute(!on); }); } catch (e) {}
+        try { B.platform.on(B.EVENT_NAME.PAUSE_STATE_CHANGED, on => { if (on) { if (state.mode === 'play' && !state.paused) pauseGame(); this.mute(true); } else if (!this.busy) this.mute(!!this.audioOff); }); } catch (e) {}
+        try { const k = String(B.platform.language || '').toLowerCase().slice(0, 2); if (I18[k] && !localStorage.getItem(SAVE_KEY)) SV.settings.lang = k; } catch (e) {}
+        try { const got = await B.storage.get([SAVE_KEY]); const raw = Array.isArray(got) ? got[0] : got; if (raw) SV = parseSave(typeof raw === 'string' ? raw : JSON.stringify(raw)); } catch (e) {}
+        try { this.audioOff = B.platform.isAudioEnabled === false; } catch (e) {}
+      }
     } catch (e) {}
   },
-  call(fn) { try { if (this.ready) fn(this.sdk); } catch (e) {} },
+  call(fn) { try { if (this.ready && this.kind === 'cg') fn(this.sdk); } catch (e) {} },
+  ev(name) {
+    if (!this.ready) return;
+    try {
+      if (this.kind === 'cg') { const g = this.sdk.game; ({ gp1: () => g.gameplayStart(), gp0: () => g.gameplayStop(), load1: () => g.loadingStart(), load0: () => g.loadingStop(), win: () => g.happytime() }[name] || (() => {}))(); }
+      else if (this.kind === 'pg') { const m = { load0: 'game_ready', win: 'player_got_achievement' }[name]; if (m) this.sdk.platform.sendMessage(m); }
+    } catch (e) {}
+  },
   mute(on) {
+    if (!on && this.audioOff) on = true;
     if (AU.out) AU.out.gain.value = on ? 0 : Math.pow(SV.settings.sfx / 100, 1.5) * 0.9;
     if (AU.music) { if (on) AU.music.pause(); else AU.music.play().catch(() => {}); }
   },
   show(type, onDone, onFail) {
     if (this.busy) return; this.busy = true;
-    const end = ok => { this.busy = false; this.mute(false); if (ok) { onDone && onDone(); } else { onFail && onFail(); } };
+    let fired = false;
+    const end = ok => { if (fired) return; fired = true; this.busy = false; this.mute(false); if (ok) { onDone && onDone(); } else { onFail && onFail(); } };
     if (!this.ready) {
-      if (type === 'midgame') { this.busy = false; onDone && onDone(); return; }
+      if (type === 'midgame') { end(true); return; }
       const el = $('adPrev'); $('adPrevTxt').textContent = L().adPreview; el.classList.add('show'); this.mute(true);
       let n = 3; $('adPrevN').textContent = n;
       const iv = setInterval(() => { n--; $('adPrevN').textContent = n; if (n <= 0) { clearInterval(iv); el.classList.remove('show'); end(true); } }, 1000);
       return;
     }
-    try { this.sdk.ad.requestAd(type, { adStarted: () => this.mute(true), adFinished: () => end(true), adError: () => end(false) }); }
-    catch (e) { end(false); }
+    try {
+      if (this.kind === 'cg') { this.sdk.ad.requestAd(type, { adStarted: () => this.mute(true), adFinished: () => end(true), adError: () => end(false) }); return; }
+      const A = this.sdk.advertisement;
+      if (type === 'midgame') {
+        if (!A.isInterstitialSupported) { end(true); return; }
+        this.pgCb = () => end(true); A.showInterstitial('between_runs');
+        setTimeout(() => { if (!fired && A.interstitialState !== 'opened' && A.interstitialState !== 'loading') { this.pgCb = null; end(true); } }, 2500); // too soon since the last one: the platform skips it silently
+        setTimeout(() => { if (!fired && A.interstitialState !== 'opened') { this.pgCb = null; end(true); } }, 9000);
+      } else {
+        if (!A.isRewardedSupported) { end(false); return; }
+        this.pgGot = false; this.pgCb = ok => end(ok); A.showRewarded('reward');
+        setTimeout(() => { if (!fired && A.rewardedState !== 'opened' && A.rewardedState !== 'rewarded') { this.pgCb = null; end(false); } }, 12000);
+      }
+    } catch (e) { end(false); }
   }
 };
-const gpStart = () => ADS.call(S => S.game.gameplayStart());
-const gpStop = () => ADS.call(S => S.game.gameplayStop());
+const gpStart = () => ADS.ev('gp1');
+const gpStop = () => ADS.ev('gp0');
+const NOREW = () => { if (STANDALONE) return true; try { return ADS.kind === 'pg' && !ADS.sdk.advertisement.isRewardedSupported; } catch (e) { return false; } };
 
 // ------------------------------------------------------------- display
 const cv = $('c'), ctx = cv.getContext('2d');
@@ -617,6 +655,7 @@ function spawnPos(margin) {
 }
 const STG = () => STAGES[G.stage];
 const SHP = () => STG().hp * (1 + 0.25 * G.tor);
+const COINV = 0.3; // share of a gem's value paid out as coins
 const SGOLD = () => STG().gold * (1 + 0.2 * G.tor);
 const tempo = () => (G.frenzyT > 0 ? 0.6 : 1) * (G.hasteT > 0 ? 0.8 : 1);
 function hpMul() { const m = G.t / 60; return (1 + m * 0.17 + Math.max(0, m - 7) * 0.22) * SHP(); }
@@ -760,7 +799,7 @@ function hurtPlayer(d) {
   if (p.hp <= 0) {
     if (G.revive) {
       G.revive = false; p.hp = Math.round(ST.maxhp * 0.5); p.inv = 2; banner(L().revived); nuke(false); sfx('heal', 1, 0);
-    } else if (!STANDALONE && !G.adRevived && !G.won) offerRevive();
+    } else if (!NOREW() && !G.adRevived && !G.won) offerRevive();
     else die();
   }
 }
@@ -971,15 +1010,17 @@ function gainXP(v) {
 function canEvolve(w) { return !w.evo && w.lvl >= 5 && (G.passives[WP[w.id].pair] || 0) > 0; }
 function choicePool() {
   const out = [];
+  for (const w of G.weapons) if (canEvolve(w)) out.push({ kind: 'evo', id: w.id, wt: 0 });
+  const needPair = new Set(G.weapons.filter(w => !w.evo && w.lvl >= 4).map(w => WP[w.id].pair));
   for (const w of G.weapons) if (!w.evo && w.lvl < 5) out.push({ kind: 'w', id: w.id, wt: 3 });
   if (G.weapons.length < 6) for (const id in WP) if (!weapon(id)) out.push({ kind: 'w', id, wt: 1.6 });
   const owned = Object.keys(G.passives);
   for (const id of owned) if (G.passives[id] < PS[id].max) out.push({ kind: 'p', id, wt: 2.2 });
-  if (owned.length < 6) for (const id in PS) if (!G.passives[id]) out.push({ kind: 'p', id, wt: 1.3 });
+  if (owned.length < 6) for (const id in PS) if (!G.passives[id]) out.push({ kind: 'p', id, wt: needPair.has(id) ? 5 : 1.3 });
   return out;
 }
 function rollChoices(n) {
-  const pool = choicePool(), res = [];
+  const all = choicePool(), res = all.filter(c => c.kind === 'evo').slice(0, Math.max(1, n - 1)), pool = all.filter(c => c.kind !== 'evo');
   while (res.length < n && pool.length) {
     const tot = pool.reduce((a, b) => a + b.wt, 0); let r = Math.random() * tot, idx = 0;
     for (; idx < pool.length; idx++) { r -= pool[idx].wt; if (r <= 0) break; }
@@ -989,7 +1030,8 @@ function rollChoices(n) {
   return res;
 }
 function applyChoice(c) {
-  if (c.kind === 'w') { const w = weapon(c.id); if (w) w.lvl++; else addWeapon(c.id); }
+  if (c.kind === 'evo') { const w = weapon(c.id); if (w && canEvolve(w)) { w.evo = true; SV.stats.evos++; banner(`${nm(WP[c.id])[3]} ${L().evolved}`); sfx('fanfare', 1, 0); G.shake = 0.3; burst(G.p.x, G.p.y - 10, 50, ['#da4e38', '#facb3e', '#fdf7ed'], 160, 0.7, 0); } }
+  else if (c.kind === 'w') { const w = weapon(c.id); if (w) w.lvl++; else addWeapon(c.id); }
   else if (c.kind === 'p') { G.passives[c.id] = (G.passives[c.id] || 0) + 1; if (c.id === 'vitality') G.p.hp += 20; }
   else if (c.kind === 'heal') G.p.hp = Math.min(ST.maxhp, G.p.hp + 30);
   else if (c.kind === 'gold') G.gold += 25;
@@ -1001,6 +1043,7 @@ function choiceInfo(c) {
   if (c.kind === 'heal') return { icon: 'flask_big_red', t: Lx.heal, d: Lx.healD, tag: '' };
   if (c.kind === 'gold') return { icon: 'coin_anim_f0', t: Lx.goldBag, d: Lx.goldBagD, tag: '' };
   if (c.kind === 'b') { const b = BLESS[c.id]; return { icon: b.icon, t: T('bl.' + c.id), d: statText(b.desc) + (b.extra ? str('gap') + T(b.extra) : ''), tag: '' }; }
+  if (c.kind === 'evo') { const d = nm(WP[c.id]); return { icon: WP[c.id].evoIcon, t: d[3], d: d[4], tag: Lx.evoTag, cls: 'evo' }; }
   if (c.kind === 'w') {
     const d = nm(WP[c.id]), w = weapon(c.id);
     if (!w) { const pr = nm(PS[WP[c.id].pair])[0]; return { icon: WP[c.id].icon, t: d[0], d: d[1] + ' (' + Lx.pairsW(pr) + ')', tag: Lx.isNew, cls: 'new' }; }
@@ -1048,12 +1091,12 @@ function showChoices(list) {
     };
     box.appendChild(b);
   });
-  const rb = $('bReroll'); rb.textContent = G.rerolls > 0 ? L().reroll(G.rerolls) : L().adReroll; rb.style.display = !G.shrineOpen && (G.rerolls > 0 || (!STANDALONE && (G.adRerolls || 0) < 3)) ? '' : 'none';
+  const rb = $('bReroll'); rb.textContent = G.rerolls > 0 ? L().reroll(G.rerolls) : L().adReroll; rb.style.display = !G.shrineOpen && (G.rerolls > 0 || (!NOREW() && (G.adRerolls || 0) < 3)) ? '' : 'none';
 }
 $('bReroll').onclick = () => {
   if (state.mode !== 'level' || G.shrineOpen) return;
   if (G.rerolls > 0) { G.rerolls--; sfx('move', 0.6, 0); showChoices(rollChoices(3 + shopLv('insight'))); return; }
-  if (STANDALONE || (G.adRerolls || 0) >= 3) return;
+  if (NOREW() || (G.adRerolls || 0) >= 3) return;
   ADS.show('rewarded', () => { G.adRerolls = (G.adRerolls || 0) + 1; sfx('move', 0.6, 0); showChoices(rollChoices(3 + shopLv('insight'))); }, () => { $('bReroll').textContent = L().adFail; });
 };
 
@@ -1210,7 +1253,7 @@ function update(dt) {
     if (k.k === 'coin') {
       if (!k.pull && d < mag) { k.pull = true; k.vx = -dx / d * 60; k.vy = -dy / d * 60; }
       if (k.pull) { const acc = 900; k.vx += dx / d * acc * dt; k.vy += dy / d * acc * dt; const v = Math.hypot(k.vx, k.vy), mv = 320; if (v > mv) { k.vx *= mv / v; k.vy *= mv / v; } k.x += k.vx * dt; k.y += k.vy * dt; }
-      if (d < 7) { G.pickups.splice(i, 1); G.gold += k.v * ST.greed * SGOLD(); gainXP(k.v); sfx('coin', 0.28, 0.1, 0.035); }
+      if (d < 7) { G.pickups.splice(i, 1); G.gold += k.v * COINV * ST.greed * SGOLD(); gainXP(k.v); sfx('coin', 0.28, 0.1, 0.035); }
     } else if (d < (k.k === 'mimic' ? 26 : 12)) {
       G.pickups.splice(i, 1);
       if (k.k === 'heart') { p.hp = Math.min(ST.maxhp, p.hp + 30); sfx('heal', 0.8, 0); G.nums.push({ x: p.x, y: p.y - 30, v: '+30', t: 0, heal: true }); }
@@ -1473,7 +1516,7 @@ function die() {
 function win() {
   G.won = true; G.over = true; banner(L().cleared); playMusic('ending');
   for (const e of G.enemies) if (e.hp > 0 && !e.static) { e.hp = 0; e.elite = false; e.boss = false; e.type === 'mimic' && (e.type = 'imp'); kill(e); }
-  for (const k of G.pickups) if (k.k === 'coin') { G.gold += k.v * ST.greed * SGOLD(); k.pull = true; }
+  for (const k of G.pickups) if (k.k === 'coin') { G.gold += k.v * COINV * ST.greed * SGOLD(); k.pull = true; }
   sfx('coins', 1, 0);
   state.mode = 'dying'; G.dieT = 3.2;
 }
@@ -1499,9 +1542,9 @@ function finishRun() {
   if (qd.length) sfx('coins', 0.8, 0);
   $('endTitle').textContent = G.won ? L().win : L().dead; $('endTitle').className = G.won ? 'gold' : '';
   $('eTime').textContent = fmt(G.t); $('eLvl').textContent = G.lvl; $('eKills').textContent = G.kills; $('eGold').textContent = '+' + earned;
-  gpStop(); if (G.won) ADS.call(S => S.game.happytime());
+  gpStop(); if (G.won) ADS.ev('win');
   const bd = $('bDouble');
-  bd.style.display = 'none'; bd.disabled = true;
+  if (NOREW() || !(earned > 0)) { bd.style.display = 'none'; bd.disabled = true; } else { bd.style.display = ''; bd.disabled = false; bd.textContent = T('adDouble', earned); }
   bd.onclick = () => {
     if (bd.disabled) return; bd.disabled = true;
     ADS.show('rewarded', () => { SV.coins += earned; persist(); $('eGold').textContent = '+' + earned * 2; bd.style.display = 'none'; sfx('coins', 1, 0); refreshTitle(); }, () => { bd.textContent = L().adFail; });
@@ -1521,6 +1564,7 @@ function finishRun() {
     r.append(ic, n, bar, v); tb.appendChild(r);
   });
   state.mode = 'end'; $('hud').classList.remove('show'); showScreen('sEnd');
+  if (ADS.kind === 'pg') setTimeout(() => { if (state.mode === 'end') ADS.show('midgame', () => {}, () => {}); }, 900); // natural break: the run just ended
   if (!G.won) playMusic('title');
 }
 
@@ -1754,10 +1798,10 @@ function renderGame() {
 // ------------------------------------------------------------- boot
 function boot() {
   resize();
-  ADS.init().then(() => { ADS.call(S => S.game.loadingStart()); loadCloudSave(); step(); });
+  ADS.init().then(() => { ADS.ev('load1'); loadCloudSave(); step(); });
   const fill = $('loadFill');
   let done = 0; const need = 3;
-  const step = () => { done++; fill.style.width = (done / need * 100) + '%'; if (done >= need) setTimeout(() => { applyLang(); toTitle(); ADS.call(S => S.game.loadingStop()); }, 150); };
+  const step = () => { done++; fill.style.width = (done / need * 100) + '%'; if (done >= need) setTimeout(() => { applyLang(); toTitle(); ADS.ev('load0'); }, 150); };
   sheet.onload = () => { buildSheets(); step(); };
   sheet.src = 'assets/tiles.png';
   Promise.all(['Galmuri11', 'Galmuri7', 'Galmuri9'].map(f => document.fonts.load(`12px ${f}`))).then(step, step);

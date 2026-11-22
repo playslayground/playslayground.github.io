@@ -2255,7 +2255,7 @@ const NET = {
   // ---- guest side
   guestMsg(d) {
     NET.lastT = performance.now();
-    if (d.t === 'lobby') { NET.lobby = d.list; NET.stage = d.stage; if (d.back && G && G.guest) { G.guest = false; state.mode = 'title'; showScreen('sParty'); } NET.drawLobby(); }
+    if (d.t === 'lobby') { NET.msg(''); NET.lobby = d.list; NET.stage = d.stage; if (d.back && G && G.guest) { G.guest = false; state.mode = 'title'; showScreen('sParty'); } NET.drawLobby(); }
     else if (d.t === 'full') { NET.msg(T('pFull')); NET.leave(true); NET.drawLobby(); }
     else if (d.t === 'bye') NET.hostGone();
     else if (d.t === 'start') {

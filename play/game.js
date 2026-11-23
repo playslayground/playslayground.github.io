@@ -307,6 +307,11 @@ function sprRot(name, x, y, ang, off, opts) { // draws a vertical sprite pointin
   vctx.restore();
 }
 // icons for the DOM
+function heroPic(el, box) {
+  if (!el || !HEROES[SV.hero]) return; el.innerHTML = '';
+  const f = frames(HEROES[SV.hero].spr, 'idle')[0], cv = iconCanvas(f, box * 1.45), fr = AT[f], k = fr ? parseFloat(cv.style.width) / fr[2] : 1;
+  cv.style.marginTop = (-(fr && fr[3] > 20 ? 7 : 0) * k) + 'px'; el.appendChild(cv);
+}
 function iconCanvas(name, box) {
   const f = AT[name], c = document.createElement('canvas');
   if (!f) return c;
@@ -687,7 +692,7 @@ addEventListener('keydown', e => {
   audioUnlock();
   if (k === 'escape' || k === 'p') {
     if (state.mode === 'play') { if (state.paused) resume(); else pauseGame(); }
-    else if (['sSettings', 'sCredits', 'sArmory', 'sHero', 'sQuests', 'sLang', 'sStage', 'sMode'].includes(curScreen) || (k === 'escape' && curScreen === 'sAccount')) back();
+    else if (['sSettings', 'sCredits', 'sArmory', 'sHero', 'sQuests', 'sLang', 'sStage', 'sMode', 'sCol', 'sAttend'].includes(curScreen) || (k === 'escape' && curScreen === 'sAccount')) back();
   }
   if (k === 'm' && state.mode === 'play') { SV.settings.mini = SV.settings.mini === false; persist(); }
   if (state.mode === 'level' && ['1', '2', '3', '4'].includes(k)) { const b = $('choices').children[+k - 1]; if (b) b.click(); }
@@ -853,7 +858,7 @@ function kill(e) {
     else if (r < 0.36) G.pickups.push({ k: pick(['pfreeze', 'phaste']), x: e.x, y: e.y, t: 0 });
     return;
   }
-  G.kills++; SV.stats.kills++; G.frameKills++;
+  G.kills++; SV.stats.kills++; G.frameKills++; { const C = colSV(); C.e[e.type] = (C.e[e.type] || 0) + 1; }
   if (Math.random() < 0.004) G.pickups.push({ k: 'coin', x: e.x, y: e.y, v: 40, t: 0, pull: false, vx: 0, vy: 0, lucky: true });
   if (G.hero === 'wizard' && !G.sparking && Math.random() < 0.25) {
     G.sparking = true; const hit = new Set([e]);
@@ -980,14 +985,88 @@ function accGain(xp) {
   if (coins) SV.coins += coins; return { ups, coins, lvl: A.lvl };
 }
 // daily login streak
-function loginStreak() {
-  const d = new Date(), key = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-  const L0 = SV.login = SV.login || { d: 0, n: 0 }; if (L0.d === key) return null;
-  const y = new Date(d.getTime() - 864e5), yk = y.getFullYear() * 10000 + (y.getMonth() + 1) * 100 + y.getDate();
-  L0.n = L0.d === yk ? L0.n + 1 : 1; L0.d = key;
-  const reward = [60, 90, 130, 180, 240, 320, 700][Math.min(L0.n, 7) - 1] * (L0.n > 7 ? 1.5 : 1) | 0;
-  SV.coins += reward; persist(); return { n: L0.n, reward };
+const dayKey = (t) => { const d = t ? new Date(t) : new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); };
+const ATT = [60, 90, 130, 180, 240, 320, 700];
+const attReward = n => ATT[(n - 1) % 7] * (n > 7 ? 1.5 : 1) | 0;
+function attState() {
+  const L0 = SV.login = SV.login || { d: 0, n: 0 }, key = dayKey(), yk = dayKey(Date.now() - 864e5);
+  if (L0.d === key) return { n: L0.n, pending: false };
+  return { n: L0.d === yk ? L0.n + 1 : 1, pending: true };
 }
+function attClaim() {
+  const s = attState(); if (!s.pending) return 0;
+  const r = attReward(s.n); SV.login.n = s.n; SV.login.d = dayKey(); SV.coins += r; persist(); return r;
+}
+// daily missions
+const MPOOL = [['kills', 300, 60], ['kills', 800, 100], ['runs', 2, 50], ['runs', 4, 90], ['time', 5, 70], ['time', 10, 110], ['chests', 3, 60], ['bosses', 1, 80], ['lvl', 15, 60], ['lvl', 25, 100], ['gold', 300, 60], ['gold', 800, 100], ['daily', 1, 80], ['evos', 1, 90]];
+const MBONUS = 150;
+function missions() {
+  const key = dayKey(); let M = SV.dm;
+  if (!M || M.d !== key) {
+    let x = (key * 2246822519) >>> 0; const r2 = () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+    const pool = MPOOL.slice(), pick = [], used = {};
+    while (pick.length < 3 && pool.length) { const m = pool.splice((r2() * pool.length) | 0, 1)[0]; if (used[m[0]]) continue; used[m[0]] = 1; pick.push(m); }
+    M = SV.dm = { d: key, l: pick.map(([t, n, r]) => ({ t, n, r, p: 0, c: 0 })), b: 0 };
+  }
+  return M;
+}
+const mDone = m => m.p >= m.n;
+const mClaimable = () => { const M = missions(); return M.l.some(m => mDone(m) && !m.c) || (!M.b && M.l.every(m => m.c)); };
+function mTrack(run) {
+  const M = missions(), fin = [];
+  for (const m of M.l) {
+    const was = mDone(m), v = run[m.t] || 0;
+    if (m.t === 'time' || m.t === 'lvl') m.p = Math.max(m.p, v); else m.p += v;
+    m.p = Math.min(m.p, m.n); if (!was && mDone(m)) fin.push(m);
+  }
+  return fin;
+}
+const mText = m => T('m.' + m.t, m.n);
+// collection
+const colSV = () => SV.col || (SV.col = { e: {}, w: {}, c: {} });
+const COLE = Object.keys(EN).filter(k => k !== 'crate');
+const COLW = []; for (const id in WP) { COLW.push(id); if (WP[id].evo) COLW.push('evo_' + id); }
+const colSeen = (tab, id) => tab === 'w' ? !!colSV().w[id] : (colSV().e[id] || 0) > 0;
+const colRew = (tab, id) => tab === 'w' ? (id.startsWith('evo_') ? 80 : 30) : (EN[id].boss ? 100 : 20);
+const colNew = (tab, id) => colSeen(tab, id) && !colSV().c[tab + ':' + id];
+const colClaimable = () => COLW.some(id => colNew('w', id)) || COLE.some(id => colNew('e', id));
+const enName = id => { const n = L()['en.' + id] || I18.en['en.' + id]; return n || id; };
+function colIcon(tab, id) {
+  if (tab === 'w') { const ev = id.startsWith('evo_'), w = WP[ev ? id.slice(4) : id]; return ev ? w.evoIcon || w.icon : w.icon; }
+  const s = EN[id].spr || id, f = frames(s, 'idle'); return f[0] || frames(s, 'run')[0] || frames(s)[0];
+}
+let colTab = 'w', colSel = null;
+function buildCol(tab) {
+  if (tab) { colTab = tab; colSel = null; }
+  document.querySelectorAll('#colTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === colTab));
+  const list = colTab === 'w' ? COLW : COLE, box = $('colGrid'); box.innerHTML = '';
+  let seen = 0;
+  list.forEach(id => {
+    const ok = colSeen(colTab, id); if (ok) seen++;
+    const d = document.createElement('button'); d.className = 'ccell' + (ok ? '' : ' lock') + (colTab === 'e' && EN[id].boss ? ' boss' : '') + (id.startsWith('evo_') ? ' evo' : '') + (colSel === id ? ' sel' : '');
+    d.appendChild(iconCanvas(colIcon(colTab, id), U * 11));
+    if (colNew(colTab, id)) { const n = document.createElement('span'); n.className = 'nw'; n.textContent = 'NEW'; d.appendChild(n); }
+    if (ok && colTab === 'e') { const n = document.createElement('span'); n.className = 'cn'; n.textContent = colSV().e[id] > 9999 ? '9999+' : colSV().e[id]; d.appendChild(n); }
+    d.onclick = () => {
+      colSel = id; sfx('move', 0.5, 0);
+      if (colNew(colTab, id)) { colSV().c[colTab + ':' + id] = 1; const r = colRew(colTab, id); SV.coins += r; persist(); sfx('coins', 0.8, 0); refreshTitle(); }
+      buildCol();
+    };
+    box.appendChild(d);
+  });
+  $('colCount').textContent = T('colCnt', seen, list.length);
+  const any = list.some(id => colNew(colTab, id)); $('colAll').style.display = any ? '' : 'none';
+  $('colAll').onclick = () => { let s = 0; list.forEach(id => { if (colNew(colTab, id)) { colSV().c[colTab + ':' + id] = 1; s += colRew(colTab, id); } }); if (s) { SV.coins += s; persist(); sfx('coins', 1, 0); refreshTitle(); } buildCol(); };
+  const inf = $('colInfo'); inf.innerHTML = '';
+  if (colSel) {
+    const ok = colSeen(colTab, colSel), b = document.createElement('b'), sp = document.createElement('span');
+    if (!ok) { b.textContent = '???'; sp.textContent = T('colLock'); }
+    else if (colTab === 'w') { const ev = colSel.startsWith('evo_'), n = nm(WP[ev ? colSel.slice(4) : colSel]); b.textContent = ev ? n[3] : n[0]; sp.textContent = ev ? (n[4] || '') : n[1]; }
+    else { b.textContent = enName(colSel); sp.textContent = (EN[colSel].boss ? T('colBoss') + str('gap') : '') + T('colKills', colSV().e[colSel]); }
+    inf.append(b, sp);
+  } else inf.textContent = T('colHint');
+}
+document.querySelectorAll('#colTabs button').forEach(b => b.onclick = () => { sfx('move', 0.5, 0); buildCol(b.dataset.tab); });
 function rankOf() {
   const sc = G.t / 7.2 + G.kills / 40 + (G.won ? 40 : 0);
   return sc >= 150 ? ['S', '#facb3e'] : sc >= 115 ? ['A', '#9cdb43'] : sc >= 80 ? ['B', '#72d6ce'] : sc >= 45 ? ['C', '#c6b7be'] : ['D', '#aa8d7a'];
@@ -2091,7 +2170,10 @@ function finishRun() {
   if (!G.daily) SV.maps[G.stage] = { best: Math.max(mr.best, G.t), cleared: mr.cleared || G.won, tor: G.won ? Math.max(mr.tor || 0, Math.min(5, G.tor + 1)) : (mr.tor || 0) };
   if (G.won && G.tor > 0) SV.stats.torMax = Math.max(SV.stats.torMax || 0, G.tor);
   persist();
+  { const C = colSV(); for (const w of G.weapons) { C.w[w.id] = 1; if (w.evo) C.w['evo_' + w.id] = 1; } }
+  const s0 = G.st0 || SV.stats, mf = mTrack({ kills: G.kills, runs: 1, time: Math.floor(G.t / 60), chests: SV.stats.chests - (s0.chests || 0), bosses: SV.stats.bosses - (s0.bosses || 0), lvl: G.lvl, gold: earned, daily: G.daily ? 1 : 0, evos: SV.stats.evos - (s0.evos || 0) }); persist();
   const qd = checkQuests(), qe = $('eQuests'); qe.innerHTML = '';
+  mf.forEach(m => { const d = document.createElement('div'); d.textContent = T('mDoneL', mText(m)); qe.appendChild(d); });
   qd.slice(0, 4).forEach(q => { const d = document.createElement('div'); d.textContent = T('questDone', qText(q)) + '  ' + T('gold', q.r); qe.appendChild(d); });
   if (qd.length > 4) { const d = document.createElement('div'); d.textContent = '+' + (qd.length - 4) + ' · ' + T('gold', qd.slice(4).reduce((a, q) => a + q.r, 0)); qe.appendChild(d); }
   if (qd.length) sfx('coins', 0.8, 0);
@@ -2183,11 +2265,24 @@ const ACC = (() => {
   }
   function msg(t) { const m = $('accMsg'); if (m) m.textContent = t || ''; }
   function ui() {
-    const b = $('bAccount'); if (b) { b.style.display = on ? '' : 'none'; b.textContent = user ? '● ' + T('accT') : T('accT'); b.classList.toggle('in', !!user); }
+    const b = $('bAccount'); if (b) { b.style.display = 'none'; b.textContent = user ? '● ' + T('accT') : T('accT'); b.classList.toggle('in', !!user); }
     if (!$('accIn')) return;
     $('accIn').style.display = user ? '' : 'none'; $('accOut').style.display = user ? 'none' : '';
-    $('accState').textContent = user ? T('accAs', user.displayName || (user.email || '').replace('@id.slayground.app', '') || 'Guest') : T('accWhy');
+    $('accState').textContent = user ? '' : T('accWhy');
     $('aSync').disabled = busy;
+    const nmv = uname(); $('profName').textContent = nmv || T('guest');
+    if (user) {
+      $('pcName').textContent = nmv; const A = SV.acc || { lvl: 1 }; $('pcLv').textContent = 'Lv ' + A.lvl + ' · ' + T('coinsN', SV.coins);
+      $('pcSync').textContent = busy ? '…' : lastSync ? T('accLast', new Date(lastSync).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) : '';
+      heroPic($('pcPic'), U * 18);
+    }
+  }
+  const uname = () => user ? (user.displayName || (user.email || '').replace('@id.slayground.app', '') || 'Player') : '';
+  let mode = 'in';
+  function setMode(m) {
+    mode = m; document.querySelectorAll('#aTabs button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    $('aPw2').style.display = m === 'up' ? '' : 'none'; $('aGo').textContent = T(m === 'up' ? 'accSign' : 'accLogin');
+    $('aPw').autocomplete = m === 'up' ? 'new-password' : 'current-password'; msg('');
   }
   function valid(id, pw) {
     if (!id || (!id.includes('@') && !/^[a-zA-Z0-9_]{3,16}$/.test(id))) { msg(T('accIdRule')); return false; }
@@ -2202,10 +2297,12 @@ const ACC = (() => {
       auth.signInWithPopup(pv).then(() => msg(''), e => { if (/popup-blocked|operation-not-supported/.test(e.code || '')) auth.signInWithRedirect(pv); else msg(errText(e)); });
     });
     $('aLogin').onclick = () => { const id = $('aId').value, pw = $('aPw').value; if (!valid(id, pw)) return; msg('…'); init().then(() => auth.signInWithEmailAndPassword(idMail(id), pw)).then(() => { msg(''); $('aPw').value = ''; }, e => msg(errText(e))); };
-    $('aSign').onclick = () => { const id = $('aId').value, pw = $('aPw').value; if (!valid(id, pw)) return; msg('…'); init().then(() => auth.createUserWithEmailAndPassword(idMail(id), pw)).then(() => { msg(''); $('aPw').value = ''; sfx('fanfare', 0.8, 0); }, e => msg(errText(e))); };
+    document.querySelectorAll('#aTabs button').forEach(b => b.onclick = () => { sfx('move', 0.5, 0); setMode(b.dataset.m); });
+    $('aGo').onclick = () => { if (mode === 'up') { if ($('aPw2').value !== $('aPw').value) { msg(T('accPwMatch')); return; } $('aSign').click(); } else $('aLogin').click(); };
+    $('aSign').onclick = () => { const id = $('aId').value, pw = $('aPw').value; if (!valid(id, pw)) return; msg('…'); init().then(() => auth.createUserWithEmailAndPassword(idMail(id), pw)).then(() => { msg(''); $('aPw').value = ''; $('aPw2').value = ''; setMode('in'); sfx('fanfare', 0.8, 0); }, e => msg(errText(e))); };
     $('aOut').onclick = () => { if (auth) auth.signOut(); msg(''); };
     $('aSync').onclick = () => pull();
-    for (const el of [$('aId'), $('aPw')]) el.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('aLogin').click(); });
+    for (const el of [$('aId'), $('aPw'), $('aPw2')]) el.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('aGo').click(); });
     ui();
     try { if (localStorage.getItem('dm.acc')) init().catch(() => {}); } catch (e) {}
     // remember that this device used an account, so the SDK is loaded on the next visit to restore the session
@@ -2244,13 +2341,43 @@ function refreshTitle() {
   $('bankTitle').textContent = SV.coins ? T('coinsN', SV.coins) : ''; ACC.ui();
   $('recTitle').textContent = SV.best.time ? L().best(fmt(SV.best.time)) : '';
   document.querySelectorAll('.bank').forEach(b => b.textContent = SV.coins);
+  heroPic($('profPic'), U * 13);
+  $('profChip').classList.toggle('off', !ACC.on);
+  const att = attState().pending, mc = mClaimable();
+  $('bAttend').classList.toggle('has', att); $('bCol').classList.toggle('has', colClaimable()); $('bMissions').classList.toggle('has', mc); $('bQuests').classList.toggle('has', mc);
 }
 function toTitle() {
   state.mode = 'title'; state.paused = false; $('hud').classList.remove('show'); screenStack = [];
   showScreen('sTitle'); refreshTitle(); playMusic('title'); genWorld(); initAttract();
-  const ls = loginStreak();
-  if (ls) { const el = $('loginPop'); el.textContent = T('loginDay', ls.n, ls.reward); el.classList.add('show'); refreshTitle(); setTimeout(() => { sfx('coins', 0.9, 0); }, 400); setTimeout(() => el.classList.remove('show'), 5200); }
+  if (attState().pending) setTimeout(() => { if (curScreen === 'sTitle' && attState().pending) openAttend(); }, 700);
 }
+function openAttend() { buildAttend(); go('sAttend'); }
+function buildAttend(popIdx) {
+  const s = attState(), claimedToday = !s.pending, n = s.n, wk = Math.floor((n - 1) / 7), idx = (n - 1) % 7;
+  const box = $('attGrid'); box.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const day = wk * 7 + i + 1, got = i < idx || (i === idx && claimedToday);
+    const d = document.createElement('div'); d.className = 'aday' + (i === 6 ? ' d7' : '') + (i === idx ? ' today' : '') + (got ? ' got' : '') + (i === popIdx ? ' pop' : '');
+    const dn = document.createElement('span'); dn.className = 'dn'; dn.textContent = T('attDay', day);
+    const ic = document.createElement('span'); ic.className = 'ico'; ic.appendChild(iconCanvas(i === 6 ? 'chest_full_open_anim_f0' : 'coin_anim_f0', U * (i === 6 ? 9 : 6)));
+    const am = document.createElement('span'); am.className = 'am'; am.textContent = attReward(day);
+    const st = document.createElement('span'); st.className = 'stamp'; st.textContent = T('attGot');
+    d.append(dn, ic, am, st); box.appendChild(d);
+  }
+  $('attSub').textContent = T('attSub', claimedToday ? n : Math.max(0, n - 1));
+  $('attNote').textContent = claimedToday ? T('attTmr') : (wk ? T('attWk2') : T('attWk'));
+  const b = $('attBtn'); b.textContent = claimedToday ? T('attOk') : T('attClaim');
+  b.onclick = () => {
+    if (!attState().pending) { back(); return; }
+    const r = attClaim(); buildAttend(idx); sfx('coins', 0.9, 0); if (idx === 6) setTimeout(() => sfx('fanfare', 0.8, 0), 250);
+    refreshTitle(); flyCoins(r);
+  };
+}
+function flyCoins(r) { const el = document.querySelector('#sAttend .attNote'); if (el) el.textContent = T('coinsN', '+' + r); }
+$('bAttend').onclick = () => { audioUnlock(); openAttend(); };
+$('bCol').onclick = () => { audioUnlock(); buildCol('w'); go('sCol'); };
+$('bMissions').onclick = () => { audioUnlock(); buildQuests('d'); go('sQuests'); };
+$('profChip').onclick = () => { if (ACC.on) $('bAccount').onclick(); };
 $('bStart').onclick = () => { audioUnlock(); buildModes(); go('sMode'); };
 function buildModes() {
   const d = dailyInfo();
@@ -2262,8 +2389,36 @@ $('mSolo').onclick = () => { FLOW = 'solo'; buildHeroes(); go('sHero'); };
 $('mDaily').onclick = () => { FLOW = 'daily'; buildHeroes(); go('sHero'); };
 $('mParty').onclick = () => { FLOW = 'party'; NET.openLobby(); go('sParty'); };
 $('bArmory').onclick = () => { audioUnlock(); buildShop(); go('sArmory'); };
-$('bQuests').onclick = () => { audioUnlock(); buildQuests(); go('sQuests'); };
-function buildQuests() {
+$('bQuests').onclick = () => { audioUnlock(); buildQuests('d'); go('sQuests'); };
+let qTab = 'd';
+document.querySelectorAll('#qTabs button').forEach(b => b.onclick = () => { sfx('move', 0.5, 0); buildQuests(b.dataset.tab); });
+function hhmm() { const d = new Date(), m = 1440 - d.getHours() * 60 - d.getMinutes(); return (m / 60 | 0) + ':' + String(m % 60).padStart(2, '0'); }
+function buildMissions() {
+  const M = missions(), box = $('mlist'); box.innerHTML = '';
+  const row = (cls, txt, sub, frac, rew, state, onClaim, icon) => {
+    const d = document.createElement('div'); d.className = 'quest ' + cls;
+    const t = document.createElement('div'); t.className = 'mt';
+    const a = document.createElement('div'); a.textContent = txt; t.appendChild(a);
+    if (frac != null) { const bar = document.createElement('i'); bar.className = 'bar'; const f = document.createElement('i'); f.style.width = (frac * 100).toFixed(0) + '%'; bar.appendChild(f); t.appendChild(bar); }
+    const p = document.createElement('div'); p.className = 'p'; p.textContent = sub;
+    const r = document.createElement('div'); r.className = 'r'; r.appendChild(iconCanvas(icon || 'coin_anim_f0', U * 5)); r.append(String(rew));
+    const act = document.createElement(state === 'claim' ? 'button' : 'span');
+    if (state === 'claim') { act.className = 'btn small big'; act.textContent = T('attClaim'); act.onclick = onClaim; } else { act.className = 'got'; act.textContent = state === 'got' ? T('claimed') : ''; }
+    d.append(t, p, r, act); box.appendChild(d);
+  };
+  M.l.forEach(m => {
+    const st = m.c ? 'got' : mDone(m) ? 'claim' : 'none';
+    row((mDone(m) ? 'ok' : '') + (m.c ? ' claimedrow' : ''), mText(m), T('progress', Math.min(m.p, m.n), m.n), Math.min(1, m.p / m.n), m.r, st, () => { m.c = 1; SV.coins += m.r; persist(); sfx('coins', 0.9, 0); buildMissions(); refreshTitle(); });
+  });
+  const all = M.l.every(m => m.c), cnt = M.l.filter(m => m.c).length;
+  row('bonus' + (M.b ? ' claimedrow' : ''), T('mBonus'), T('progress', cnt, 3), cnt / 3, MBONUS, M.b ? 'got' : all ? 'claim' : 'none', () => { M.b = 1; SV.coins += MBONUS; persist(); sfx('fanfare', 0.8, 0); buildMissions(); refreshTitle(); }, 'chest_full_open_anim_f0');
+  $('mReset').textContent = T('mReset', hhmm());
+}
+function buildQuests(tab) {
+  if (tab) qTab = tab;
+  document.querySelectorAll('#qTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === qTab));
+  $('mWrap').style.display = qTab === 'd' ? '' : 'none'; $('qlist').style.display = qTab === 'a' ? '' : 'none';
+  buildMissions();
   checkQuests();
   const box = $('qlist'); box.innerHTML = '';
   QUESTS.slice().sort((a, b) => (SV.q[a.id] ? 1 : 0) - (SV.q[b.id] ? 1 : 0)).forEach(q => {
@@ -2435,7 +2590,7 @@ function startRun(opts) {
   audioUnlock(); sfx('portal', 0.8, 0);
   opts = opts && opts.roster || opts && opts.daily ? opts : (FLOW === 'daily' ? dailyOpts() : {});
   LASTOPTS = opts;
-  newRun(SV.hero, opts); refreshStats(); try { if (window.GStats) GStats.start(); } catch (e) {}
+  newRun(SV.hero, opts); G.st0 = Object.assign({}, SV.stats); refreshStats(); try { if (window.GStats) GStats.start(); } catch (e) {}
   state.mode = 'play'; state.paused = false; screenStack = [];
   showScreen(null); $('hud').classList.add('show'); fillIcons($('hud')); invSig = ''; buildInv(); hudLast = {}; hud();
   playMusic('level1');

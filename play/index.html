@@ -53,14 +53,22 @@
       <button class="btn big" id="bStart" data-t="start"></button>
       <div class="minirow">
         <button class="btn" id="bArmory" data-t="armory"></button>
-        <button class="btn" id="bQuests" data-t="quests"></button>
+        <button class="btn" id="bQuests"><span data-t="quests"></span><i class="dot"></i></button>
         <button class="btn" id="bSettings" data-t="settings"></button>
       </div>
       <button class="link" id="bAccount" style="display:none"></button>
       <button class="link" id="bCredits" data-t="credits"></button>
     </nav>
-    <div class="titleFoot"><span class="acc"><b id="accLv">Lv 1</b><i><i id="accFill"></i></i></span><span id="bankTitle"></span><span id="recTitle"></span></div>
-    <div id="loginPop"></div>
+    <div class="titleFoot"><span id="bankTitle" hidden></span><span id="recTitle"></span></div>
+    <button class="prof" id="profChip"><span class="pic" id="profPic"></span><span class="pn"><b id="profName"></b><span class="pl"><em id="accLv">Lv 1</em><i class="xp"><i id="accFill"></i></i></span></span></button>
+    <div class="tright">
+      <div class="coinbox"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div>
+      <div class="sidebtns">
+        <button class="sbtn" id="bAttend"><span class="ico" data-icon="chest_full_open_anim_f0"></span><em data-t="attS"></em><i class="dot"></i></button>
+        <button class="sbtn" id="bCol"><span class="ico" data-icon="skelet_idle_anim_f0"></span><em data-t="colS"></em><i class="dot"></i></button>
+        <button class="sbtn" id="bMissions"><span class="ico" data-icon="weapon_knight_sword"></span><em data-t="mS"></em><i class="dot"></i></button>
+      </div>
+    </div>
   </section>
 
   <!-- mode select -->
@@ -142,8 +150,33 @@
   <section class="screen dim" id="sQuests">
     <div class="panel wide">
       <div class="phead"><h2 data-t="quests"></h2><div class="coins"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div></div>
-      <div id="qlist" class="quests"></div>
+      <div class="tabs" id="qTabs"><button data-tab="d" class="on" data-t="tabDaily"></button><button data-tab="a" data-t="tabAch"></button></div>
+      <div id="mWrap"><div id="mlist" class="quests mlist"></div><div class="mfoot" id="mReset"></div></div>
+      <div id="qlist" class="quests" style="display:none"></div>
       <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- collection -->
+  <section class="screen dim" id="sCol">
+    <div class="panel wide">
+      <div class="phead"><h2 data-t="colT"></h2><div class="coins"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div></div>
+      <div class="tabs" id="colTabs"><button data-tab="w" class="on" data-t="colW"></button><button data-tab="e" data-t="colE"></button></div>
+      <div class="colHead"><span id="colCount"></span><button class="btn small big" id="colAll" data-t="colAll"></button></div>
+      <div class="colGrid" id="colGrid"></div>
+      <div class="colInfo" id="colInfo"></div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- attendance -->
+  <section class="screen dim" id="sAttend">
+    <div class="panel att">
+      <h2 data-t="attT"></h2>
+      <div class="attSub" id="attSub"></div>
+      <div class="attGrid" id="attGrid"></div>
+      <div class="attNote" id="attNote"></div>
+      <div class="row center"><button class="btn big" id="attBtn"></button></div>
     </div>
   </section>
 
@@ -153,13 +186,17 @@
       <h2 data-t="accT"></h2>
       <div id="accState" class="sub2"></div>
       <div id="accOut">
-        <button class="btn gbtn" id="aGoogle"><b>G</b> <span data-t="accGoogle"></span></button>
-        <div class="or" data-t="accOr"></div>
+        <div class="tabs" id="aTabs"><button data-m="in" class="on" data-t="accLogin"></button><button data-m="up" data-t="accSign"></button></div>
         <input id="aId" autocomplete="username" maxlength="64" data-ph="accId">
         <input id="aPw" type="password" autocomplete="current-password" maxlength="64" data-ph="accPw">
-        <div class="row"><button class="btn" id="aLogin" data-t="accLogin"></button><button class="btn big" id="aSign" data-t="accSign"></button></div>
+        <input id="aPw2" type="password" autocomplete="new-password" maxlength="64" data-ph="accPw2" style="display:none">
+        <button class="btn big wide" id="aGo" data-t="accLogin"></button>
+        <div class="or"><span data-t="accOr2"></span></div>
+        <button class="btn gbtn" id="aGoogle"><b>G</b> <span data-t="accGoogle"></span></button>
+        <button id="aLogin" hidden></button><button id="aSign" hidden></button>
       </div>
       <div id="accIn" style="display:none">
+        <div class="pcard"><span class="pic" id="pcPic"></span><div class="pct"><b id="pcName"></b><span id="pcLv"></span><em id="pcSync"></em></div></div>
         <div class="row"><button class="btn" id="aSync" data-t="accSync"></button><button class="btn" id="aOut" data-t="accLogout"></button></div>
       </div>
       <div id="accMsg"></div>

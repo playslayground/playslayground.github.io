@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://is2ui.github.io/dungeon-mower/sitemap.xml
+Sitemap: https://playslayground.github.io/sitemap.xml

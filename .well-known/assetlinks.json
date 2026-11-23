@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.playslayground.twa",
+        "sha256_cert_fingerprints": ["B9:6D:F2:F8:2E:5E:24:5D:E9:5A:A6:FA:BF:8F:4C:BF:05:AB:48:D8:56:D9:63:F4:A4:C4:F8:77:CF:30:2E:82"]
+      }
+    }]

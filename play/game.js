@@ -1,7 +1,7 @@
 (() => {
 'use strict';
 // =====================================================================
-//  DUNGEON MOWER
+//  SLAYGROUND
 // =====================================================================
 const AT = window.ATLAS;
 AT.zombie_anim_f0 = AT.zombie_anim_f10;
@@ -39,6 +39,7 @@ const persist = () => {
   if (d) { try { d.setItem(SAVE_KEY, str); return; } catch (e) {} }
   try { localStorage.setItem(SAVE_KEY, str); } catch (e) {}
   try { if (ADS.ready && ADS.kind === 'pg') { const pr = ADS.sdk.storage.set([SAVE_KEY], [str]); if (pr && pr.catch) pr.catch(() => {}); } } catch (e) {}
+  if (typeof ACC !== 'undefined') ACC.push();
 };
 // after the CrazyGames SDK is ready, its Data Module is the source of truth (cloud save for signed-in players)
 function loadCloudSave() {
@@ -336,10 +337,10 @@ function setVolumes() {
   if (AU.out) AU.out.gain.value = Math.pow(SV.settings.sfx / 100, 1.5) * 0.9;
   if (AU.music) AU.music.volume = Math.pow(SV.settings.music / 100, 1.5) * 0.7;
 }
-function sfx(n, vol = 1, vary = 0.08, minGap = 0.045) {
+function sfx(n, vol = 1, vary = 0.08, minGap = 0.045, rate = 1) {
   const c = AU.ctx, b = AU.buf[n]; if (!c || !b) return;
   const t = c.currentTime; if (AU.last[n] && t - AU.last[n] < minGap) return; AU.last[n] = t;
-  const s = c.createBufferSource(); s.buffer = b; s.playbackRate.value = 1 + rnd(-vary, vary);
+  const s = c.createBufferSource(); s.buffer = b; s.playbackRate.value = rate * (1 + rnd(-vary, vary));
   const gn = c.createGain(); gn.gain.value = vol; s.connect(gn); gn.connect(AU.out); s.start();
 }
 // music runs through Web Audio so loops join sample-exact (an <audio> element leaves a gap at the mp3 seam)
@@ -419,6 +420,9 @@ const ADS = {
         try { const k = String(B.platform.language || '').toLowerCase().slice(0, 2); if (I18[k] && !localStorage.getItem(SAVE_KEY)) SV.settings.lang = k; } catch (e) {}
         try { const got = await B.storage.get([SAVE_KEY]); const raw = Array.isArray(got) ? got[0] : got; if (raw) SV = parseSave(typeof raw === 'string' ? raw : JSON.stringify(raw)); } catch (e) {}
         try { this.audioOff = B.platform.isAudioEnabled === false; } catch (e) {}
+      } else if (STANDALONE && window.DM_SITEADS && window.DM_SITEADS.rewarded) {
+        const S = window.DM_SITEADS; if (S.init) await S.init();
+        this.sdk = S; this.kind = 'site'; this.ready = true;
       }
     } catch (e) {}
   },
@@ -448,6 +452,7 @@ const ADS = {
     }
     try {
       if (this.kind === 'cg') { this.sdk.ad.requestAd(type, { adStarted: () => this.mute(true), adFinished: () => end(true), adError: () => end(false) }); return; }
+      if (this.kind === 'site') { this.mute(true); const pr = type === 'midgame' ? (this.sdk.interstitial ? this.sdk.interstitial() : Promise.resolve()) : this.sdk.rewarded(); Promise.resolve(pr).then(ok => end(type === 'midgame' ? true : !!ok), () => end(type === 'midgame')); setTimeout(() => end(type === 'midgame'), 60000); return; }
       const A = this.sdk.advertisement;
       if (type === 'midgame') {
         if (!A.isInterstitialSupported) { end(true); return; }
@@ -464,7 +469,7 @@ const ADS = {
 };
 const gpStart = () => ADS.ev('gp1');
 const gpStop = () => ADS.ev('gp0');
-const NOREW = () => { if (STANDALONE) return true; try { return ADS.kind === 'pg' && !ADS.sdk.advertisement.isRewardedSupported; } catch (e) { return false; } };
+const NOREW = () => { if (STANDALONE) return ADS.kind !== 'site'; try { return ADS.kind === 'pg' && !ADS.sdk.advertisement.isRewardedSupported; } catch (e) { return false; } };
 
 // ------------------------------------------------------------- display
 const cv = $('c'), ctx = cv.getContext('2d');
@@ -613,7 +618,7 @@ function newRun(heroId, opts) {
   opts = opts || {};
   G = {
     hero: heroId, t: 0, kills: 0, gold: 0, lvl: 1, xp: 0, pendingLv: 0, players: [],
-    enemies: [], shots: [], pickups: [], parts: [], nums: [], blasts: [], swings: [], zones: [], zaps: [], slashes: [], eshots: [], warns: [], hazards: [], totem: null, bloodT: 0, meteorT: 0,
+    enemies: [], shots: [], pickups: [], parts: [], nums: [], blasts: [], swings: [], zones: [], zaps: [], slashes: [], eshots: [], warns: [], hazards: [], totem: null, bloodT: 0, meteorT: 0, combo: 0, comboT: 0, bestCombo: 0, splats: [], rings: [], amb: [], comboTier: 0, words: [], frameKills: 0, coinChain: 0, coinT: 0, slowT: 0, beatT: 0,
     spawnAcc: 0, bossesDone: {}, swarmsDone: {}, elitesDone: {}, boss: null,
     stage: opts.stage || SV.stage || 'keep', bossList: [], finalLeft: 0, rushAt: rnd(170, 400), rushT: 0, rushDone: false, crateT: 30,
     tor: opts.tor != null ? opts.tor : curTor(SV.stage || 'keep'), fz: 0, fzIdle: 0, frenzyT: 0, freezeT: 0, hasteT: 0, ghosts: [], risers: [], shrines: [], shrineOpen: false, chargeT: 70,
@@ -680,8 +685,9 @@ addEventListener('keydown', e => {
   audioUnlock();
   if (k === 'escape' || k === 'p') {
     if (state.mode === 'play') { if (state.paused) resume(); else pauseGame(); }
-    else if (['sSettings', 'sCredits', 'sArmory', 'sHero', 'sQuests', 'sLang', 'sStage', 'sMode'].includes(curScreen)) back();
+    else if (['sSettings', 'sCredits', 'sArmory', 'sHero', 'sQuests', 'sLang', 'sStage', 'sMode'].includes(curScreen) || (k === 'escape' && curScreen === 'sAccount')) back();
   }
+  if (k === 'm' && state.mode === 'play') { SV.settings.mini = SV.settings.mini === false; persist(); }
   if (state.mode === 'level' && ['1', '2', '3', '4'].includes(k)) { const b = $('choices').children[+k - 1]; if (b) b.click(); }
   if (state.mode === 'chest' && (k === 'enter' || k === ' ') && !$('bTake').disabled) { e.preventDefault(); $('bTake').click(); }
   else if ((k === ' ' || k === 'shift') && state.mode === 'play' && !state.paused) { e.preventDefault(); tryDash(); }
@@ -733,7 +739,8 @@ const STG = () => STAGES[G.stage];
 const MOD = k => !!(G && G.daily && G.daily.mods.includes(k));
 const SHP = () => STG().hp * (1 + 0.25 * G.tor);
 const COINV = 0.3; // share of a gem's value paid out as coins
-const SGOLD = () => STG().gold * (1 + 0.2 * G.tor) * (MOD('rich') ? 1.5 : 1) * (G.bloodT > 0 ? 2 : 1);
+const boostLeft = () => Math.max(0, ((SV.boost || 0) - Date.now()) / 1000);
+const SGOLD = () => STG().gold * (1 + 0.2 * G.tor) * (MOD('rich') ? 1.5 : 1) * (G.bloodT > 0 ? 2 : 1) * (boostLeft() > 0 ? 2 : 1);
 const tempo = () => (G.frenzyT > 0 ? 0.6 : 1) * (G.hasteT > 0 ? 0.8 : 1);
 function hpMul() { const m = G.t / 60; return (1 + m * 0.36 + Math.max(0, m - 5) * 0.42) * SHP() * (MOD('brute') ? 1.3 : 1) * (G.players && G.players.length > 1 ? 1 + 0.45 * (G.players.length - 1) : 1); }
 function spawnEnemy(type, x, y, o = {}) {
@@ -820,12 +827,14 @@ function damage(e, amount, w, kx, ky, kb) {
   if (crit && T0 && G.hero === 'lizard' && T0.healAcc < 5 && !G.over) { T0.healAcc++; G.p.hp = Math.min(ST.maxhp, G.p.hp + 1); }
   dmg = Math.max(1, Math.round(dmg));
   e.hp -= dmg; e.flash = 0.12;
+  if (!e.static) { const I = INT(); if (crit) { sparks(e.x, e.y - e.h * e.sc * 0.5, Math.round(2 + I), ['#fdf7ed', '#facb3e'], 170); }
+    else if (Math.random() < 0.3) sparks(e.x, e.y - e.h * e.sc * 0.5, 1 + (I > 2 ? 1 : 0), ['#fdf7ed'], 130); }
   if (G.hero === 'sska' && !e.boss && !e.static && e.hp > 0 && e.hp < e.maxhp * 0.15) { e.hp = 0; G.slashes.push({ x: e.x, y: e.y - 6, t: 0, life: 0.18, small: true }); }
   if (w) w.dmg += Math.min(dmg, dmg + e.hp);
   const kbk = (kb || 1) * (e.boss ? 0.08 : e.elite ? 0.3 : 1);
   if (kx || ky) { const d = Math.hypot(kx, ky) || 1; e.kbx += kx / d * 90 * kbk; e.kby += ky / d * 90 * kbk; }
   if (SV.settings.nums && (G.nums.length < 60 || crit)) G.nums.push({ x: e.x + rnd(-4, 4), y: e.y - e.h * e.sc - 2, v: dmg, t: 0, crit });
-  sfx('hit', 0.35, 0.15, 0.06);
+  sfx('hit', crit ? 0.5 : 0.35, 0.15, 0.06, crit ? 1.35 : 1);
   if (e.hp <= 0) kill(e);
 }
 function kill(e) {
@@ -840,14 +849,17 @@ function kill(e) {
     else if (r < 0.36) G.pickups.push({ k: pick(['pfreeze', 'phaste']), x: e.x, y: e.y, t: 0 });
     return;
   }
-  G.kills++; SV.stats.kills++;
+  G.kills++; SV.stats.kills++; G.frameKills++;
+  if (Math.random() < 0.004) G.pickups.push({ k: 'coin', x: e.x, y: e.y, v: 40, t: 0, pull: false, vx: 0, vy: 0, lucky: true });
   if (G.hero === 'wizard' && !G.sparking && Math.random() < 0.25) {
     G.sparking = true; const hit = new Set([e]);
     for (let j = 0; j < 2; j++) { const t2 = nearest(e.x, e.y, 80, hit); if (!t2) break; hit.add(t2); G.zaps.push({ x1: e.x, y1: e.y - 6, x2: t2.x, y2: t2.y - 6, t: 0 }); damage(t2, 14 * (1 + 0.04 * G.lvl), null, 0, 0, 0.2); }
     G.sparking = false;
   }
   if (G.frenzyT <= 0) G.fz = Math.min(1, G.fz + 0.011); G.fzIdle = 0;
-  const pts = samples(e.run[0]); const n = e.boss ? 60 : e.elite ? 30 : 10;
+  splat(e); const I = INT();
+  if (e.boss) ring(e.x, e.y - 10, 4, 90, 0.6, '#fdf7ed', 1); else if (e.elite) ring(e.x, e.y - 8, 3, 26, 0.35, '#fdf7ed', 1);
+  const pts = samples(e.run[0]); const n = Math.round((e.boss ? 60 : e.elite ? 30 : 10) * (0.8 + I * 0.35));
   for (let i = 0; i < n && pts.length; i++) {
     const p = pick(pts); const a = rnd(0, TAU), s = rnd(20, 70) * (e.boss ? 1.6 : 1);
     G.parts.push({ x: e.x + p[0] * e.sc, y: e.y + p[1] * e.sc, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 30, g: 160, c: p[2], t: 0, life: rnd(0.35, 0.7), sz: e.sc });
@@ -859,7 +871,7 @@ function kill(e) {
     if (e.elite) G.pickups.push({ k: 'pmagnet', x: e.x + 10, y: e.y, t: 0 });
     dropChest(e.x, e.y, e.elite && !e.boss);
     for (let i = 0; i < (e.boss ? 24 : 8); i++) dropCoin(e.x + rnd(-14, 14), e.y + rnd(-10, 10), e.boss ? 4 : 2);
-    G.shake = e.boss ? 0.9 : 0.4; G.hitstop = e.boss ? 0.25 : 0.06;
+    G.shake = e.boss ? 0.9 : 0.4; G.hitstop = e.boss ? 0.12 : 0.06; if (e.boss) { G.slowT = 0.6; G.flashT = 0.15; }
     sfx(e.boss ? 'bigboom' : 'boom', 0.9, 0);
     if (e.boss) {
       SV.stats.bosses++;
@@ -877,7 +889,7 @@ function kill(e) {
 }
 function dropCoin(x, y, v) {
   if (G.pickups.length > 380) { const o = G.pickups.find(p => p.k === 'coin' && !p.pull); if (o) { o.v += v; return; } }
-  G.pickups.push({ k: 'coin', x, y, v, t: rnd(0, 1), pull: false, vx: 0, vy: 0 });
+  const a = rnd(0, TAU), sp = rnd(10, 55); G.pickups.push({ k: 'coin', x, y, v, t: rnd(0, 1), pull: false, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6 });
 }
 function dropChest(x, y, mayMimic) { G.pickups.push({ k: mayMimic && Math.random() < 0.25 ? 'mimic' : 'chest', x: clamp(x, 16, AW - 16), y: clamp(y, 20, AH - 8), t: 0 }); }
 function burst(x, y, n, cols, spd, life, grav) {
@@ -920,6 +932,61 @@ function nuke(withBoss) {
   G.shake = 0.8; G.flashT = 0.25; sfx('bigboom', 1, 0);
   G.blasts.push({ x: G.p.x, y: G.p.y - 8, r: 140, t: 0, life: 0.5, big: true });
   burst(G.p.x, G.p.y - 10, 90, ['#facb3e', '#ee8e2e', '#da4e38', '#fdf7ed'], 260, 0.8, 40);
+}
+
+// ------------------------------------------------------------- impact
+const INT = () => 1 + Math.min(2, G.lvl / 14 + G.t / 500); // effects grow with the run
+const now = () => performance.now() / 1000;
+function ring(x, y, r0, r1, life, c, th) { if (G.rings.length < 60) G.rings.push({ x, y, r0, r1, t0: now(), life, c, th: th || 1 }); }
+function sparks(x, y, n, cols, sp) { if (G.parts.length > 1100) return; for (let i = 0; i < n; i++) { const a = rnd(0, TAU), v = rnd(0.5, 1) * (sp || 160); G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 20, g: 120, c: pick(cols), t: 0, life: rnd(0.12, 0.28), sz: 1 }); } }
+const SPLAT = ['#3d1a22', '#4a1d24', '#2a2030', '#33281c'];
+function splat(e) {
+  if (G.splats.length > 320) G.splats.shift();
+  const pts = [], n = e.boss ? 26 : e.elite ? 16 : 8, R = (e.boss ? 14 : e.elite ? 9 : 5) * Math.max(1, e.sc * 0.8);
+  for (let i = 0; i < n; i++) { const a = rnd(0, TAU), d = Math.pow(Math.random(), 0.6) * R; pts.push([Math.round(Math.cos(a) * d), Math.round(Math.sin(a) * d * 0.6), Math.random() < 0.25 ? 2 : 1]); }
+  const col = e.type && /slime|slug|swampy|muddy|zombie|goblin|orc/.test(e.type) ? '#26331c' : e.type && /skelet|skull|necro|lich|ice/.test(e.type) ? '#3a3a46' : pick(SPLAT);
+  G.splats.push({ x: e.x, y: e.y, pts, c: col, t0: now() });
+}
+
+// ------------------------------------------------------------- dopamine
+function bigText(word, col, sub) {
+  const el = $('bigText'); if (!el) return; el.firstChild.textContent = word; el.lastChild.textContent = sub || ''; el.style.color = col || '#facb3e';
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+}
+function confetti(x, y, n) { const cs = ['#da4e38', '#facb3e', '#9cdb43', '#72d6ce', '#9b5ba5', '#fdf7ed']; for (let i = 0; i < n; i++) { const a = rnd(0, TAU), sp = rnd(60, 190); G.parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 90, g: 260, c: pick(cs), t: 0, life: rnd(0.6, 1.2), sz: 1 + (Math.random() < 0.3 ? 1 : 0) }); } }
+// rarity of level-up cards: rare (+4% damage), epic (taken twice), legendary (twice + full heal + coins)
+const RARC = ['', '#4ba3d6', '#9b5ba5', '#facb3e'];
+function rollRarity(c) {
+  if (c.kind === 'evo') return 3; if (c.kind === 'b' || c.kind === 'heal' || c.kind === 'gold') return 0;
+  const luck = 1 + 0.15 * (G.passives.greed || 0), r = Math.random();
+  return r < 0.02 * luck ? 3 : r < 0.09 * luck ? 2 : r < 0.27 * luck ? 1 : 0;
+}
+function applyRarity(c) {
+  const rr = c.rar || 0; if (!rr || c.kind === 'evo') return;
+  G.bl.might += rr === 1 ? 0.04 : rr === 2 ? 0.06 : 0.1;
+  if (rr >= 2) { if (c.kind === 'w') { const w = weapon(c.id); if (w && !w.evo && w.lvl < 5) w.lvl++; } else if (c.kind === 'p' && (G.passives[c.id] || 0) < PS[c.id].max) G.passives[c.id]++; }
+  if (rr === 3) { refreshStats(); G.p.hp = ST.maxhp; G.gold += Math.round(60 * SGOLD()); sparks(G.p.x, G.p.y - 12, 14, ['#facb3e', '#fdf7ed'], 120); }
+  refreshStats(); buildInv();
+}
+// account level (persists between runs)
+const accNeed = l => Math.round(220 * Math.pow(l, 1.3));
+function accGain(xp) {
+  const A = SV.acc = SV.acc || { lvl: 1, xp: 0 }; let ups = 0, coins = 0;
+  A.xp += xp; while (A.xp >= accNeed(A.lvl)) { A.xp -= accNeed(A.lvl); A.lvl++; ups++; coins += 150 + 50 * A.lvl; }
+  if (coins) SV.coins += coins; return { ups, coins, lvl: A.lvl };
+}
+// daily login streak
+function loginStreak() {
+  const d = new Date(), key = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  const L0 = SV.login = SV.login || { d: 0, n: 0 }; if (L0.d === key) return null;
+  const y = new Date(d.getTime() - 864e5), yk = y.getFullYear() * 10000 + (y.getMonth() + 1) * 100 + y.getDate();
+  L0.n = L0.d === yk ? L0.n + 1 : 1; L0.d = key;
+  const reward = [60, 90, 130, 180, 240, 320, 700][Math.min(L0.n, 7) - 1] * (L0.n > 7 ? 1.5 : 1) | 0;
+  SV.coins += reward; persist(); return { n: L0.n, reward };
+}
+function rankOf() {
+  const sc = G.t / 7.2 + G.kills / 40 + (G.won ? 40 : 0);
+  return sc >= 150 ? ['S', '#facb3e'] : sc >= 115 ? ['A', '#9cdb43'] : sc >= 80 ? ['B', '#72d6ce'] : sc >= 45 ? ['C', '#c6b7be'] : ['D', '#aa8d7a'];
 }
 
 // ------------------------------------------------------------- enemy attacks & run events
@@ -975,6 +1042,22 @@ function updateHazards(dt, LP) {
     if (h.t > h.life) G.hazards.splice(i, 1);
   }
   use(LP);
+}
+// small map of the whole arena in the top-right corner (M toggles it)
+function drawMinimap(cx, cy) {
+  const mw = VW < 300 ? 52 : 70, mh = Math.round(mw * AH / AW), X0 = VW - mw - 4, Y0 = 24, sx = mw / AW, sy = mh / AH;
+  vctx.globalAlpha = 0.8; vctx.fillStyle = '#111'; vctx.fillRect(X0 - 1, Y0 - 1, mw + 2, mh + 2); vctx.fillStyle = '#1c1618'; vctx.fillRect(X0, Y0, mw, mh); vctx.globalAlpha = 1;
+  const dot = (x, y, c, sz) => { vctx.fillStyle = c; vctx.fillRect(Math.round(X0 + x * sx - (sz >> 1)), Math.round(Y0 + y * sy - (sz >> 1)), sz, sz); };
+  for (const sh of G.shrines) if (!sh.used) dot(sh.x, sh.y, '#9b5ba5', 2);
+  if (G.totem) dot(G.totem.x, G.totem.y, (performance.now() / 200 | 0) % 2 ? '#c6b7be' : '#9b5ba5', 3);
+  let n = 0;
+  for (const e of G.enemies) { if (e.static) continue; if (e.boss || e.elite || e.type === 'tgoblin') continue; if (n++ > 220) break; dot(e.x, e.y, '#c0453a', 1); }
+  for (const k of G.pickups) if (k.k === 'chest' || k.k === 'pmagnet' || k.k === 'heart') dot(k.x, k.y, k.k === 'heart' ? '#da4e38' : '#facb3e', 2);
+  for (const e of G.enemies) { if (e.elite) dot(e.x, e.y, '#ee8e2e', 2); else if (e.type === 'tgoblin') dot(e.x, e.y, '#facb3e', 3); else if (e.boss) dot(e.x, e.y, (performance.now() / 150 | 0) % 2 ? '#da4e38' : '#fdf7ed', 4); }
+  vctx.fillStyle = 'rgba(253,247,237,.35)'; const vx = Math.round(X0 + cx * sx), vy = Math.round(Y0 + cy * sy), vw = Math.round(VW * sx), vh = Math.round(VH * sy);
+  vctx.fillRect(vx, vy, vw, 1); vctx.fillRect(vx, vy + vh, vw, 1); vctx.fillRect(vx, vy, 1, vh); vctx.fillRect(vx + vw, vy, 1, vh + 1);
+  for (const pl of G.players) if (!pl.local) dot(pl.p.x, pl.p.y, pl.down ? '#da4e38' : '#9cdb43', 3);
+  const me = LPL(); dot(me.p.x, me.p.y, '#111', 4); dot(me.p.x, me.p.y, '#fdf7ed', 2);
 }
 function drawMagnet(X, Y) {
   const x = Math.round(X) - 4, y = Math.round(Y) - 9;
@@ -1304,6 +1387,7 @@ function rollChoices(n) {
     res.push(pool.splice(Math.min(idx, pool.length - 1), 1)[0]);
   }
   if (!res.length) { res.push({ kind: 'heal' }); res.push({ kind: 'gold' }); }
+  for (const c of res) c.rar = G.shrineOpen ? 0 : rollRarity(c);
   return res;
 }
 function applyChoice(c) {
@@ -1342,7 +1426,7 @@ function openShrine() {
 function openLevel() {
   $('lvTitle').textContent = T('levelUp');
   state.mode = 'level'; gpStop();
-  sfx('levelup', 0.9, 0);
+  sfx('levelup', 0.9, 0); ring(G.p.x, G.p.y - 8, 4, 60, 0.45, '#72d6ce', 1);
   // level-up shockwave pushes enemies back
   queryR(G.p.x, G.p.y, 70, e => { const dx = e.x - G.p.x, dy = e.y - G.p.y, d = Math.hypot(dx, dy) || 1; e.kbx += dx / d * 160 * (e.boss ? 0.1 : 1); e.kby += dy / d * 160 * (e.boss ? 0.1 : 1); });
   burst(G.p.x, G.p.y - 10, 40, ['#72d6ce', '#cae6f5', '#fdf7ed', '#49a790'], 140, 0.6, 0);
@@ -1355,15 +1439,17 @@ function showChoices(list) {
   const box = $('choices'); box.innerHTML = '';
   list.forEach((c, i) => {
     const inf = choiceInfo(c);
-    const b = document.createElement('button'); b.className = 'choice';
+    const b = document.createElement('button'); b.className = 'choice' + (c.rar ? ' r' + c.rar : '');
     b.innerHTML = `<div class="ic"></div><div class="t"><span></span><em class="${inf.cls || ''}"></em></div><div class="d"></div>`;
     b.querySelector('.ic').appendChild(iconCanvas(inf.icon, U * 16));
     b.querySelector('.t span').textContent = `${i + 1}. ${inf.t}`; b.querySelector('.t em').textContent = inf.tag; b.querySelector('.d').textContent = inf.d;
+    if (c.rar && c.kind !== 'evo') { const rb = document.createElement('div'); rb.className = 'rar'; rb.textContent = T('rar' + c.rar) + ' · ' + T('rarD' + c.rar); b.appendChild(rb); }
+    b.style.animationDelay = (i * 0.07) + 's';
     b.onmouseenter = () => sfx('move', 0.4, 0);
     b.onclick = () => {
       if (state.mode !== 'level') return;
       if (G.guest) { sfx('select', 0.7, 0); NET.pick(i); return; }
-      sfx('select', 0.7, 0); applyChoice(c);
+      sfx('select', 0.7, 0); applyChoice(c); applyRarity(c); if (c.rar >= 2) sfx('fanfare', 0.8, 0, 0.05, c.rar === 3 ? 1.15 : 1);
       if (G.shrineOpen) { G.shrineOpen = false; $('lvTitle').textContent = T('levelUp'); } else G.pendingLv--;
       if (G.pendingLv > 0) { showChoices(rollChoices(nChoices())); sfx('levelup', 0.7, 0); if (NET.role === 'host' && G.mode === 'party') NET.levelUp(); }
       else if (NET.role === 'host' && G.mode === 'party' && NET.waiting.size) NET.hostWait();
@@ -1372,6 +1458,8 @@ function showChoices(list) {
     box.appendChild(b);
   });
   $('lvWait').textContent = '';
+  const topR = Math.max(0, ...list.map(c => c.kind === 'evo' ? 0 : (c.rar || 0)));
+  if (topR === 3) { sfx('fanfare', 0.9, 0, 0.05, 1.2); } else if (topR === 2) sfx('chest', 0.6, 0, 0.05, 1.2);
   const rb = $('bReroll'); if (G.guest) { rb.style.display = 'none'; return; } rb.textContent = curPL.rerolls > 0 ? L().reroll(curPL.rerolls) : L().adReroll; rb.style.display = !G.shrineOpen && (curPL.rerolls > 0 || (!NOREW() && (curPL.adRerolls || 0) < 3)) ? '' : 'none';
 }
 $('bReroll').onclick = () => {
@@ -1405,7 +1493,7 @@ function openChest() {
   else {
     const r = Math.random(), n = r < 0.06 ? 5 : r < 0.26 ? 3 : 1;
     for (let i = 0; i < n; i++) {
-      const pool = choicePool().filter(c => c.kind === 'w' ? weapon(c.id) : G.passives[c.id]);
+      const pool = choicePool().filter(c => (c.kind === 'w' ? weapon(c.id) : G.passives[c.id]) && !rewards.some(q => q.kind === c.kind && q.id === c.id));
       const c = pool.length ? pick(pool) : { kind: 'gold' };
       rewards.push(c); if (c.kind !== 'gold') applyChoice(c); else G.gold += 25;
     }
@@ -1416,7 +1504,24 @@ function openChest() {
   const reel = $('reel'); reel.innerHTML = '';
   const allIcons = [...Object.values(WP).map(w => w.icon), ...Object.values(PS).map(p => p.icon)];
   const slots = rewards.map(() => { const s = document.createElement('div'); s.className = 'slot'; reel.appendChild(s); return s; });
-  chestAnim = { t: 0, rewards, slots, allIcons, shown: 0, goldBonus, tick: 0 };
+  const jack = rewards.length >= 5 ? 2 : rewards.length >= 3 ? 1 : 0;
+  if (jack === 2) { G.gold += Math.round(goldBonus * 3 * ST.greed); }
+  chestAnim = { t: 0, rewards, slots, allIcons, shown: 0, goldBonus: jack === 2 ? goldBonus * 4 : goldBonus, tick: 0, jack };
+  $('chestJack').textContent = ''; $('chestJack').className = ''; if ($('bChestAd')) $('bChestAd').style.display = 'none'; $('sChest').classList.remove('jack1', 'jack2');
+}
+function chestAdBtn(A) {
+  const b = $('bChestAd'); if (!b) return;
+  const can = !NOREW() && !A.adUsed && !A.rewards.some(r => r.kind === 'evo') && G.mode !== 'party';
+  b.style.display = can ? '' : 'none'; if (!can) return; b.disabled = false; b.textContent = T('adMore');
+  b.onclick = () => { b.disabled = true; ADS.show('rewarded', () => {
+    A.adUsed = true; b.style.display = 'none';
+    const pool = choicePool().filter(c => (c.kind === 'w' ? weapon(c.id) : G.passives[c.id]) && !A.rewards.some(q => q.kind === c.kind && q.id === c.id));
+    const c = pool.length ? pick(pool) : { kind: 'gold' }; A.rewards.push(c); if (c.kind !== 'gold') applyChoice(c); else G.gold += 25;
+    const s = document.createElement('div'); s.className = 'slot pop'; s.appendChild(iconCanvas(iconForReward(c), U * 15));
+    const lv = document.createElement('b'), cap = document.createElement('i'); lv.className = 'lv'; cap.className = 'cap';
+    if (c.kind === 'gold') cap.textContent = '+25'; else { cap.textContent = c.kind === 'w' ? nm(WP[c.id])[0] : nm(PS[c.id])[0]; lv.textContent = c.kind === 'w' ? weapon(c.id).lvl : G.passives[c.id]; }
+    s.append(lv, cap); $('reel').appendChild(s); sfx('pick', 0.8, 0, 0.04, 1.3);
+  }, () => { b.textContent = L().adFail; }); };
 }
 function iconForReward(c) { if (c.kind === 'evo') return WP[c.id].evoIcon; if (c.kind === 'w') return WP[c.id].icon; if (c.kind === 'p') return PS[c.id].icon; return 'coin_anim_f0'; }
 function updateChestUI(dt) {
@@ -1425,6 +1530,7 @@ function updateChestUI(dt) {
   // chest canvas
   const c = $('chestCv'), x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.clearRect(0, 0, c.width, c.height);
   const fr = A.t < 0.25 ? 0 : A.t < 0.45 ? 1 : 2, f = AT['chest_full_open_anim_f' + fr];
+  if (A.jack && A.t > 0.45 && !A.rays) { A.rays = true; $('sChest').classList.add('rays'); }
   x.drawImage(sheet, f[0], f[1], 16, 16, 32, 22, 32, 32);
   if (A.t > 0.45) { for (let i = 0; i < 10; i++) { const a = A.t * 2 + i * 0.63, r = 18 + Math.sin(A.t * 6 + i) * 4; x.fillStyle = i % 2 ? '#facb3e' : '#fdf7ed'; x.fillRect(Math.round(48 + Math.cos(a) * r), Math.round(30 + Math.sin(a) * r * 0.6), 1, 1); } }
   // reels spin then stop one by one
@@ -1434,20 +1540,23 @@ function updateChestUI(dt) {
       A.tick -= dt;
       if (A.t > 0.4 && (s.dataset.k || 0) < A.t * 14) { s.dataset.k = Math.ceil(A.t * 14); s.innerHTML = ''; s.appendChild(iconCanvas(pick(A.allIcons), U * 15)); if (i === 0) sfx('move', 0.25, 0.3, 0.06); }
     } else if (!s.dataset.done) {
-      s.dataset.done = 1; s.innerHTML = ''; s.appendChild(iconCanvas(iconForReward(A.rewards[i]), U * 15)); sfx('pick', 0.7, 0);
-      const out = $('chestOut'), r = A.rewards[i], line = document.createElement('div');
-      if (r.kind === 'evo') { line.className = 'evo'; line.textContent = `${nm(WP[r.id])[3]} ${L().evolved}`; sfx('fanfare', 1, 0); G.shake = 0.3; }
-      else if (r.kind === 'gold') line.textContent = L().gold(25);
-      else { const inf = choiceInfo(r); line.innerHTML = `<b></b> `; line.firstChild.textContent = r.kind === 'w' ? nm(WP[r.id])[0] + ' ' + L().lv(weapon(r.id).lvl) : nm(PS[r.id])[0] + ' ' + L().lv(G.passives[r.id]); void inf; }
-      out.appendChild(line);
+      s.dataset.done = 1; s.innerHTML = ''; s.appendChild(iconCanvas(iconForReward(A.rewards[i]), U * 15)); sfx('pick', 0.7, 0, 0.04, 1 + i * 0.08);
+      const out = $('chestOut'), r = A.rewards[i], cap = document.createElement('i'), lv = document.createElement('b');
+      cap.className = 'cap'; lv.className = 'lv';
+      if (r.kind === 'evo') { s.classList.add('evo'); cap.textContent = nm(WP[r.id])[3]; const line = document.createElement('div'); line.className = 'evo'; line.textContent = `${nm(WP[r.id])[3]} ${L().evolved}`; out.appendChild(line); sfx('fanfare', 1, 0); G.shake = 0.3; }
+      else if (r.kind === 'gold') cap.textContent = '+25';
+      else { cap.textContent = r.kind === 'w' ? nm(WP[r.id])[0] : nm(PS[r.id])[0]; lv.textContent = r.kind === 'w' ? weapon(r.id).lvl : G.passives[r.id]; if ((r.kind === 'w' ? weapon(r.id).lvl : G.passives[r.id]) >= (r.kind === 'w' ? 5 : PS[r.id].max)) s.classList.add('max'); }
+      s.append(lv, cap); s.classList.add('pop');
       if (i === A.slots.length - 1) {
-        const g = document.createElement('div'); g.innerHTML = '<b></b>'; g.firstChild.textContent = L().gold(Math.round(A.goldBonus * ST.greed)); out.appendChild(g);
+        const g = document.createElement('div'); g.className = 'cg'; g.appendChild(iconCanvas('coin_anim_f0', U * 6)); const gb = document.createElement('b'); gb.textContent = '+' + Math.round(A.goldBonus * ST.greed); g.appendChild(gb); out.appendChild(g);
         sfx('coins', 0.8, 0); $('bTake').disabled = false; $('bTake').focus();
+        chestAdBtn(A);
+        if (A.jack) { const j = $('chestJack'); j.textContent = A.jack === 2 ? 'JACKPOT' : 'GREAT'; j.className = 'show j' + A.jack; $('sChest').classList.add('jack' + A.jack); sfx('fanfare', 1, 0, 0.05, A.jack === 2 ? 1.2 : 1); G.shake = 0.4; }
       }
     }
   });
 }
-$('bTake').onclick = () => { if (state.mode !== 'chest') return; sfx('select', 0.6, 0); chestAnim = null; showScreen(null); state.mode = 'play'; if (G.pendingLv > 0) openLevel(); else gpStart(); };
+$('bTake').onclick = () => { if (state.mode !== 'chest') return; $('sChest').classList.remove('rays', 'jack1', 'jack2'); sfx('select', 0.6, 0); chestAnim = null; showScreen(null); state.mode = 'play'; if (G.pendingLv > 0) openLevel(); else gpStart(); };
 
 // ------------------------------------------------------------- update
 function localInput() {
@@ -1482,6 +1591,11 @@ function tickPlayer(pl, dt) {
 function update(dt) {
   const LP = LPL();
   if (G.hitstop > 0) { G.hitstop -= dt; dt *= 0.1; }
+  if (G.slowT > 0) { G.slowT -= dt; dt *= 0.35; }
+  G.frameKills = 0;
+  for (let i = G.words.length - 1; i >= 0; i--) { G.words[i].t += dt; if (G.words[i].t > 1.1) G.words.splice(i, 1); }
+  if (G.coinT > 0) G.coinT -= dt; else G.coinChain = 0;
+  { const mh = ST.maxhp, q = G.p; if (q.hp > 0 && q.hp < mh * 0.25) { G.beatT -= dt; if (G.beatT <= 0) { G.beatT = 0.85; sfx('thunk', 0.35, 0, 0.3, 0.55); } } }
   G.t += dt;
   // players
   for (const pl of G.players) {
@@ -1612,9 +1726,13 @@ function update(dt) {
     use(PL); const p = G.p, mag = ST.magnet;
     const dx = p.x - k.x, dy = (p.y - 6) - k.y, d = Math.hypot(dx, dy);
     if (k.k === 'coin') {
+      if (!k.pull && (k.vx || k.vy)) { k.x += k.vx * dt; k.y += k.vy * dt; const f = Math.max(0, 1 - 7 * dt); k.vx *= f; k.vy *= f; if (Math.abs(k.vx) + Math.abs(k.vy) < 2) k.vx = k.vy = 0; }
       if (!k.pull && d < mag) { k.pull = true; k.vx = -dx / d * 60; k.vy = -dy / d * 60; }
-      if (k.pull) { const acc = 900; k.vx += dx / d * acc * dt; k.vy += dy / d * acc * dt; const v = Math.hypot(k.vx, k.vy), mv = 320; if (v > mv) { k.vx *= mv / v; k.vy *= mv / v; } k.x += k.vx * dt; k.y += k.vy * dt; }
-      if (d < 7) { G.pickups.splice(i, 1); G.gold += k.v * COINV * ST.greed * SGOLD(); gainXP(k.v); if (PL.local) sfx('coin', 0.28, 0.1, 0.035);
+      if (k.pull) { k.ps = Math.min(420, (k.ps || 60) + 900 * dt); const tx = dx / d * k.ps, ty = dy / d * k.ps, f = Math.min(1, 12 * dt); k.vx += (tx - k.vx) * f; k.vy += (ty - k.vy) * f;
+        const step = Math.hypot(k.vx, k.vy) * dt; if (step >= d) { k.x = p.x; k.y = p.y - 6; } else { k.x += k.vx * dt; k.y += k.vy * dt; } }
+      if (d < 7 || (k.pull && Math.hypot(p.x - k.x, p.y - 6 - k.y) < 7)) { G.pickups.splice(i, 1); G.gold += k.v * COINV * ST.greed * SGOLD(); gainXP(k.v);
+        if (PL.local) { if (k.lucky) { sfx('coins', 1, 0); G.nums.push({ x: p.x, y: p.y - 30, v: '+' + Math.round(k.v * COINV * ST.greed * SGOLD()), t: 0, crit: true }); sparks(p.x, p.y - 8, 8, ['#facb3e'], 90); }
+          G.coinChain = Math.min(G.coinChain + 1, 30); G.coinT = 0.4; sfx('coin', 0.28, 0, 0.035, 1 + G.coinChain * 0.035); }
         if (PL.hero === 'hild' && ++PL.tr.gems >= 30) { PL.tr.gems = 0; p.hp = Math.min(ST.maxhp, p.hp + 4); G.nums.push({ x: p.x, y: p.y - 30, v: '+4', t: 0, heal: true }); } }
     } else if (d < (k.k === 'mimic' ? 26 : 12)) {
       G.pickups.splice(i, 1);
@@ -1687,12 +1805,14 @@ function render(attract) {
   const inView = (x, y, m = 40) => x > cx - m && x < cx + VW + m && y > cy - m && y < cy + VH + m * 2;
   for (const o of props) if (o.decal && inView(o.x, o.y)) spr(o.name, o.x - cx, o.y - cy, { alpha: 0.55 });
   const tnow = performance.now() / 1000;
+  if (!attract && G.splats.length) { for (const sp of G.splats) { if (!inView(sp.x, sp.y)) continue; const age = tnow - sp.t0, al = age < 40 ? 0.62 : Math.max(0, 0.62 - (age - 40) / 20); if (al <= 0) continue; vctx.globalAlpha = al; vctx.fillStyle = sp.c; const X = Math.round(sp.x - cx), Y = Math.round(sp.y - cy); for (const q of sp.pts) vctx.fillRect(X + q[0], Y + q[1], q[2], q[2]); } vctx.globalAlpha = 1; }
   for (const k of (attract ? [] : G.pickups)) {
     if (!inView(k.x, k.y)) continue;
     const X = k.x - cx, Y = k.y - cy;
     if (k.k === 'coin') {
       const fr = 'coin_anim_f' + (((tnow * 8 + k.t * 4) | 0) % 4);
-      spr(fr, X, Y); if (k.v >= 3) spr(fr, X + 2, Y - 2); if (k.v >= 8) spr(fr, X - 2, Y - 3);
+      if (k.lucky) { const bob = Math.round(Math.abs(Math.sin(tnow * 4 + k.x)) * 3); spr(fr, X, Y - bob, { scale: 2 }); }
+      else { spr(fr, X, Y); if (k.v >= 3) spr(fr, X + 2, Y - 2); if (k.v >= 8) spr(fr, X - 2, Y - 3); }
     } else if (k.k === 'heart') spr('ui_heart_full', X, Y - Math.round(Math.abs(Math.sin(tnow * 3)) * 2));
     else if (k.k === 'keg') spr('bomb_f' + ((tnow * 6 | 0) % 3), X, Y);
     else if (k.k === 'pmagnet') { const bob = Math.round(Math.abs(Math.sin(tnow * 3 + k.x)) * 2); if ((tnow * 3 | 0) % 2) pixelRing(X, Y - 6 - bob, 7, '#facb3e', 1); drawMagnet(X, Y - bob); }
@@ -1753,6 +1873,11 @@ function render(attract) {
       for (const da of [a, a + Math.PI / 2 + 0.3]) for (let q = -R; q <= R; q++) vctx.fillRect(Math.round(X + Math.cos(da) * q), Math.round(Y + Math.sin(da) * q), 1, 1); vctx.globalAlpha = 1; }
     for (const q of G.parts) { vctx.globalAlpha = clamp(1 - q.t / q.life + 0.3, 0, 1); vctx.fillStyle = q.c; vctx.fillRect(Math.round(q.x - cx), Math.round(q.y - cy), q.sz, q.sz); }
     vctx.globalAlpha = 1;
+    for (let i = G.rings.length - 1; i >= 0; i--) { const r = G.rings[i], k = (tnow - r.t0) / r.life; if (k >= 1 || k < 0) { G.rings.splice(i, 1); continue; } const e2 = 1 - Math.pow(1 - k, 3); vctx.globalAlpha = 1 - k; pixelRing(r.x - cx, r.y - cy, r.r0 + (r.r1 - r.r0) * e2, r.c, r.th); }
+    vctx.globalAlpha = 1;
+    { const A = G.amb, col = ({ keep: '#ee8e2e', sewers: '#9cdb43', camp: '#facb3e', crypt: '#72d6ce', hell: '#da4e38' })[G.stage] || '#ee8e2e'; while (A.length < 14) A.push({ x: cx + rnd(0, VW), y: cy + rnd(0, VH + 20), vy: -rnd(4, 14), vx: rnd(-4, 4), ph: rnd(0, TAU), z: Math.random() < 0.3 ? 2 : 1 });
+      for (let i = A.length - 1; i >= 0; i--) { const a = A[i]; a.y += a.vy / 60; a.x += (a.vx + Math.sin(tnow + a.ph) * 3) / 60; if (a.y < cy - 10 || a.x < cx - 20 || a.x > cx + VW + 20 || a.y > cy + VH + 30) { A.splice(i, 1); continue; } vctx.globalAlpha = 0.14 + 0.1 * Math.sin(tnow * 2 + a.ph); vctx.fillStyle = col; vctx.fillRect(Math.round(a.x - cx), Math.round(a.y - cy), a.z, a.z); }
+      vctx.globalAlpha = 1; }
   }
   // light
   drawLight(cx, cy, attract);
@@ -1760,14 +1885,20 @@ function render(attract) {
     // enemy shots and slam warnings stay readable in the dark
     for (const w of G.warns) { if (w.t >= 0) continue; const k = clamp(1 + w.t / 0.95, 0, 1), X = w.x - cx, Y = w.y - cy; pixelRing(X, Y, w.r, (tnow * 10 | 0) % 2 ? '#da4e38' : '#ee8e2e', 1); pixelRing(X, Y, Math.max(1, w.r * k), '#da4e38', 1); }
     for (const q of G.eshots) { const X = Math.round(q.x - cx), Y = Math.round(q.y - cy); if (X < -4 || Y < -4 || X > VW + 4 || Y > VH + 4) continue; vctx.fillStyle = '#111'; vctx.fillRect(X - 2, Y - 2, 5, 5); vctx.fillStyle = ESC[q.c] || ESC[0]; vctx.fillRect(X - 1, Y - 2, 3, 5); vctx.fillRect(X - 2, Y - 1, 5, 3); vctx.fillStyle = '#fdf7ed'; vctx.fillRect(X, Y - 1, 1, 1); }
+    for (const w of G.words) { const k = w.t / 1.1, X = Math.round(w.x - cx), Y = Math.round(w.y - cy - k * 18); vctx.font = (w.big ? '16px' : '12px') + ' Galmuri11'; vctx.textAlign = 'center'; vctx.globalAlpha = k > 0.75 ? (1 - k) * 4 : 1; const sc = k < 0.12 ? 1 + (0.12 - k) * 6 : 1; vctx.save(); vctx.translate(X, Y); vctx.scale(sc, sc); vctx.fillStyle = '#111'; vctx.fillText(w.w, 1, 1); vctx.fillStyle = w.big ? '#facb3e' : pick(['#fdf7ed', '#facb3e', '#9cdb43']); vctx.fillText(w.w, 0, 0); vctx.restore(); vctx.globalAlpha = 1; }
+    { const q = G.p, mh = ST.maxhp; if (q.hp > 0 && q.hp < mh * 0.25) { const a = 0.25 + 0.2 * Math.sin(tnow * 7.4); const g = vctx.createRadialGradient(VW / 2, VH / 2, Math.min(VW, VH) * 0.3, VW / 2, VH / 2, Math.max(VW, VH) * 0.7); g.addColorStop(0, 'rgba(98,35,47,0)'); g.addColorStop(1, `rgba(170,30,40,${a})`); vctx.fillStyle = g; vctx.fillRect(0, 0, VW, VH); } }
     // damage numbers above the dark
     vctx.font = '8px Galmuri7'; vctx.textAlign = 'center'; vctx.textBaseline = 'alphabetic';
     for (const n of G.nums) {
       const X = Math.round(n.x - cx), Y = Math.round(n.y - cy - n.t * 22 + (n.t > 0.5 ? (n.t - 0.5) * 10 : 0));
+      const big = typeof n.v === 'number' && !n.heal && !n.poison && (n.crit || n.v >= 150);
       const s = String(n.v);
+      if (big) { const pop = n.t < 0.08 ? 1.5 - n.t * 6.25 : 1; vctx.save(); vctx.translate(X, Y); vctx.scale(pop, pop); vctx.font = '10px Galmuri9'; vctx.fillStyle = '#111'; vctx.fillText(s, 1, 1);
+        vctx.fillStyle = n.v >= 400 ? '#da4e38' : n.v >= 150 ? '#ee8e2e' : '#facb3e'; vctx.fillText(s, 0, 0); vctx.restore(); vctx.font = '8px Galmuri7'; continue; }
       vctx.fillStyle = '#222'; vctx.fillText(s, X + 1, Y + 1);
-      vctx.fillStyle = n.heal ? '#4ba747' : n.poison ? '#9cdb43' : n.crit ? '#facb3e' : '#fdf7ed'; vctx.fillText(s, X, Y);
+      vctx.fillStyle = n.heal ? '#4ba747' : n.poison ? '#9cdb43' : n.crit || n.gold ? '#facb3e' : '#fdf7ed'; vctx.fillText(s, X, Y);
     }
+    if (SV.settings.mini !== false) drawMinimap(cx, cy);
     // player hp bar
     for (const pl of G.players) { if (pl.down) continue;
       const q = pl.p, bw = pl.local ? 16 : 12, X = Math.round(q.x - cx - bw / 2), Y = Math.round(q.y - cy + 3), mh = (G.guest && pl.mh) || (pl.ST || ST).maxhp;
@@ -1812,7 +1943,8 @@ function drawEnemy(e, cx, cy) {
     const s = e.sc;
     for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) spr(name, X + ox, Y + oy, { red: true, flip, scale: s });
   }
-  spr(name, X, Y, { flip, scale: e.sc, flash: e.flash > 0 });
+  if (e.flash > 0 && !e.static && !e.boss) { const f = Math.min(1, e.flash / 0.12); vctx.save(); vctx.translate(Math.round(X), Math.round(Y)); vctx.scale(1 + 0.28 * f, 1 - 0.22 * f); spr(name, 0, 0, { flip, scale: e.sc, flash: true }); vctx.restore(); }
+  else spr(name, X, Y, { flip, scale: e.sc, flash: e.flash > 0 });
   if (e.hitCd && G && state.mode !== 'title' && !e.boss && (G.freezeT > 0 || e.stunT > 0)) spr(name, X, Y, { flip, scale: e.sc, ice: true, alpha: 0.5 });
   if (e.type === 'tgoblin') { const t = performance.now() / 1000; if ((t * 6 | 0) % 2) spr(name, X, Y, { flip, scale: e.sc, flash: true, alpha: 0.6 }); vctx.fillStyle = '#facb3e'; vctx.fillRect(Math.round(X) - 1, Math.round(Y - e.h - 5 - Math.abs(Math.sin(t * 4)) * 2), 3, 3); }
   if ((e.elite || e.boss) && e.hp < e.maxhp && !e.boss) {
@@ -1891,7 +2023,7 @@ function buildInv() {
 let hudLast = {};
 function hud() {
   const set = (id, v) => { if (hudLast[id] !== v) { hudLast[id] = v; $(id).textContent = v; } };
-  set('timer', fmt(G.t)); set('kills', G.kills); set('gold', Math.floor(G.gold)); set('lvl', 'LV ' + G.lvl);
+  set('timer', fmt(G.t)); set('kills', G.kills); set('gold', Math.floor(G.gold) + (boostLeft() > 0 ? ' ×2' : '')); set('lvl', 'LV ' + G.lvl);
   $('xpfill').style.width = ((G.guest ? G.xpFrac || 0 : G.xp / xpNeed(G.lvl)) * 100).toFixed(1) + '%';
   const fzv = Math.round((G.frenzyT > 0 ? G.frenzyT / 8 : G.fz) * 100), fzo = G.frenzyT > 0;
   if (hudLast.fz !== fzv) { hudLast.fz = fzv; $('fzfill').style.width = fzv + '%'; }
@@ -1941,6 +2073,7 @@ function finishRun() {
     if (!dl.paid && G.t >= 300) { dl.paid = true; SV.coins += 200; dailyMsg += str('gap') + T('dailyPaid', 200); }
   }
   SV.coins += earned; SV.runs++;
+  const acc = accGain(G.kills + Math.floor(G.t) + (G.won ? 500 : 0));
   const rec = [];
   if (G.t > SV.best.time && !G.daily) { SV.best.time = G.t; rec.push(L().survived); }
   if (G.kills > SV.best.kills) { SV.best.kills = G.kills; rec.push(L().killed); }
@@ -1967,6 +2100,10 @@ function finishRun() {
     ADS.show('rewarded', () => { SV.coins += earned; persist(); $('eGold').textContent = '+' + earned * 2; bd.style.display = 'none'; sfx('coins', 1, 0); refreshTitle(); }, () => { bd.textContent = L().adFail; });
   };
   $('eRec').textContent = (rec.length ? `${L().newRecord} — ${rec.join(', ')}` : '') + (dailyMsg ? (rec.length ? '  ·  ' : '') + dailyMsg : '');
+  const [rk, rc] = rankOf(), ge = $('grade'); ge.textContent = rk; ge.style.color = rc; ge.classList.remove('show'); setTimeout(() => { ge.classList.add('show'); sfx(rk === 'S' ? 'fanfare' : 'impact', 0.9, 0); }, 700);
+  const ae = $('eAcc'); ae.textContent = acc.ups ? T('accUp', acc.lvl, acc.coins) : ''; ae.className = acc.ups ? 'hint new' : 'hint';
+  if (acc.ups) setTimeout(() => sfx('fanfare', 1, 0, 0.05, 1.1), 1300);
+  countUp($('eGold'), earned, '+'); countUp($('eKills'), G.kills, '');
   const hintEl = $('eHint');
   if (nextId && !wasOpen && stageOpen(nextId)) { hintEl.textContent = L().unlocked(nm(STAGES[nextId])[0]); hintEl.className = 'hint new'; sfx('fanfare', 1, 0); }
   else hintEl.textContent = '';
@@ -1984,6 +2121,92 @@ function finishRun() {
   if (ADS.kind === 'pg') setTimeout(() => { if (state.mode === 'end') ADS.show('midgame', () => {}, () => {}); }, 900); // natural break: the run just ended
   if (!G.won) playMusic('title');
 }
+
+function countUp(el, to, pre) { const t0 = performance.now(), dur = 900; let last = -1; const st = () => { const k = Math.min(1, (performance.now() - t0) / dur), v = Math.round(to * (1 - Math.pow(1 - k, 3))); if (v !== last) { last = v; el.textContent = pre + v.toLocaleString(); if (k < 1 && (v % 7 === 0)) sfx('coin', 0.15, 0, 0.03, 0.8 + k); } if (k < 1) requestAnimationFrame(st); }; st(); }
+
+// ------------------------------------------------------------- accounts (own site / app only)
+const ACC = (() => {
+  const CFG = window.DM_FB, on = !!(CFG && CFG.apiKey) && !window.DM_PORTAL;
+  const V = '10.12.2', base = 'https://www.gstatic.com/firebasejs/' + V + '/';
+  let auth = null, user = null, loading = null, pushT = 0, busy = false, lastSync = 0;
+  const loadJs = src => new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  function init() {
+    if (!on) return Promise.reject(new Error('off'));
+    if (loading) return loading;
+    loading = loadJs(base + 'firebase-app-compat.js').then(() => loadJs(base + 'firebase-auth-compat.js')).then(() => {
+      const app = firebase.initializeApp(CFG); auth = firebase.auth(app);
+      auth.onAuthStateChanged(u => { const was = user; user = u; if (u) { try { localStorage.setItem('dm.acc', '1'); } catch (e) {} } else { try { localStorage.removeItem('dm.acc'); } catch (e) {} } if (u && (!was || was.uid !== u.uid)) pull(); ui(); });
+      try { auth.getRedirectResult().catch(e => msg(errText(e))); } catch (e) {}
+    });
+    loading.catch(() => { loading = null; msg(T('accNet')); });
+    return loading;
+  }
+  const docUrl = () => `https://firestore.googleapis.com/v1/projects/${CFG.projectId}/databases/(default)/documents/saves/${user.uid}`;
+  const prog = o => ((o.acc && o.acc.lvl) || 1) * 1e6 + (o.runs || 0) * 1e3 + Math.min(999, Math.floor((o.coins || 0) / 100));
+  async function pull() {
+    if (!user) return; busy = true; ui();
+    try {
+      const tok = await user.getIdToken();
+      const r = await fetch(docUrl(), { headers: { Authorization: 'Bearer ' + tok } });
+      if (r.status === 404) { await upload(); msg(T('accSaved')); }
+      else if (r.ok) {
+        const j = await r.json(), raw = j.fields && j.fields.d && j.fields.d.stringValue;
+        const cloud = raw ? parseSave(raw) : null;
+        if (cloud && prog(cloud) > prog(SV)) { cloud.settings = SV.settings; SV = cloud; try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); } catch (e) {} applyLang(); msg(T('accLoaded')); sfx('coins', 0.8, 0); }
+        else { await upload(); msg(T('accSaved')); }
+      } else msg(T('accNet'));
+    } catch (e) { msg(T('accNet')); }
+    busy = false; ui();
+  }
+  async function upload() {
+    if (!user) return;
+    const tok = await user.getIdToken(), str = JSON.stringify(SV);
+    const body = { fields: { d: { stringValue: str }, p: { integerValue: String(prog(SV)) }, ts: { integerValue: String(Date.now()) } } };
+    const r = await fetch(docUrl(), { method: 'PATCH', headers: { Authorization: 'Bearer ' + tok, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error('save ' + r.status); lastSync = Date.now();
+  }
+  function push() { if (!user) return; clearTimeout(pushT); pushT = setTimeout(() => upload().catch(() => {}), 4000); }
+  const idMail = id => id.includes('@') ? id.trim() : id.trim().toLowerCase() + '@id.slayground.app';
+  function errText(e) {
+    const c = (e && e.code) || '';
+    if (/wrong-password|invalid-credential|invalid-login|user-not-found/.test(c)) return T('accBad');
+    if (/email-already-in-use/.test(c)) return T('accTaken');
+    if (/weak-password/.test(c)) return T('accWeak');
+    if (/popup-closed|cancelled-popup/.test(c)) return '';
+    if (/network/.test(c)) return T('accNet');
+    return T('accFail') + (c ? ' (' + c.replace('auth/', '') + ')' : '');
+  }
+  function msg(t) { const m = $('accMsg'); if (m) m.textContent = t || ''; }
+  function ui() {
+    const b = $('bAccount'); if (b) { b.style.display = on ? '' : 'none'; b.textContent = user ? '● ' + T('accT') : T('accT'); b.classList.toggle('in', !!user); }
+    if (!$('accIn')) return;
+    $('accIn').style.display = user ? '' : 'none'; $('accOut').style.display = user ? 'none' : '';
+    $('accState').textContent = user ? T('accAs', user.displayName || (user.email || '').replace('@id.slayground.app', '') || 'Guest') : T('accWhy');
+    $('aSync').disabled = busy;
+  }
+  function valid(id, pw) {
+    if (!id || (!id.includes('@') && !/^[a-zA-Z0-9_]{3,16}$/.test(id))) { msg(T('accIdRule')); return false; }
+    if (!pw || pw.length < 6) { msg(T('accWeak')); return false; }
+    return true;
+  }
+  function bind() {
+    if (!on || !$('sAccount')) { ui(); return; }
+    $('bAccount').onclick = () => { audioUnlock(); go('sAccount'); msg(''); ui(); init().then(ui, () => {}); };
+    $('aGoogle').onclick = () => init().then(() => {
+      const pv = new firebase.auth.GoogleAuthProvider(); msg('…');
+      auth.signInWithPopup(pv).then(() => msg(''), e => { if (/popup-blocked|operation-not-supported/.test(e.code || '')) auth.signInWithRedirect(pv); else msg(errText(e)); });
+    });
+    $('aLogin').onclick = () => { const id = $('aId').value, pw = $('aPw').value; if (!valid(id, pw)) return; msg('…'); init().then(() => auth.signInWithEmailAndPassword(idMail(id), pw)).then(() => { msg(''); $('aPw').value = ''; }, e => msg(errText(e))); };
+    $('aSign').onclick = () => { const id = $('aId').value, pw = $('aPw').value; if (!valid(id, pw)) return; msg('…'); init().then(() => auth.createUserWithEmailAndPassword(idMail(id), pw)).then(() => { msg(''); $('aPw').value = ''; sfx('fanfare', 0.8, 0); }, e => msg(errText(e))); };
+    $('aOut').onclick = () => { if (auth) auth.signOut(); msg(''); };
+    $('aSync').onclick = () => pull();
+    for (const el of [$('aId'), $('aPw')]) el.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') $('aLogin').click(); });
+    ui();
+    try { if (localStorage.getItem('dm.acc')) init().catch(() => {}); } catch (e) {}
+    // remember that this device used an account, so the SDK is loaded on the next visit to restore the session
+  }
+  return { on, bind, push, ui, get user() { return user; }, mark() { try { localStorage.setItem('dm.acc', '1'); } catch (e) {} } };
+})();
 
 // ------------------------------------------------------------- daily challenge
 const DMODS = ['horde', 'glass', 'swift', 'rich', 'dark', 'elite', 'brute'];
@@ -2008,16 +2231,20 @@ document.addEventListener('mouseover', e => { if (e.target.closest && e.target.c
 function applyLang() {
   document.documentElement.lang = SV.settings.lang;
   document.querySelectorAll('[data-t]').forEach(el => { const v = L()[el.dataset.t]; if (typeof v === 'string') el.textContent = v; });
+  document.querySelectorAll('[data-ph]').forEach(el => { el.placeholder = T(el.dataset.ph); });
   refreshTitle();
 }
 function refreshTitle() {
-  $('bankTitle').textContent = SV.coins ? T('coinsN', SV.coins) : '';
+  const A = SV.acc || { lvl: 1, xp: 0 }; $('accLv').textContent = 'Lv ' + A.lvl; $('accFill').style.width = (A.xp / accNeed(A.lvl) * 100).toFixed(1) + '%';
+  $('bankTitle').textContent = SV.coins ? T('coinsN', SV.coins) : ''; ACC.ui();
   $('recTitle').textContent = SV.best.time ? L().best(fmt(SV.best.time)) : '';
   document.querySelectorAll('.bank').forEach(b => b.textContent = SV.coins);
 }
 function toTitle() {
   state.mode = 'title'; state.paused = false; $('hud').classList.remove('show'); screenStack = [];
   showScreen('sTitle'); refreshTitle(); playMusic('title'); genWorld(); initAttract();
+  const ls = loginStreak();
+  if (ls) { const el = $('loginPop'); el.textContent = T('loginDay', ls.n, ls.reward); el.classList.add('show'); refreshTitle(); setTimeout(() => { sfx('coins', 0.9, 0); }, 400); setTimeout(() => el.classList.remove('show'), 5200); }
 }
 $('bStart').onclick = () => { audioUnlock(); buildModes(); go('sMode'); };
 function buildModes() {
@@ -2139,7 +2366,17 @@ $('bGo2').onclick = () => {
 };
 
 // armory
+const ADC_MAX = 4, BOOST_MIN = 30;
+function adCoinsLeft() { const d = new Date().toDateString(); if (!SV.adc || SV.adc.d !== d) SV.adc = { d, n: 0 }; return ADC_MAX - SV.adc.n; }
+function buildAdCoins() {
+  const b = $('bAdCoins'); if (!b) return; const left = adCoinsLeft(), bl = boostLeft();
+  if (NOREW() || (left <= 0 && bl <= 0)) { b.style.display = 'none'; return; }
+  b.style.display = ''; b.disabled = left <= 0 || bl > 90 * 60;
+  b.textContent = (bl > 0 ? T('boostOn', Math.ceil(bl / 60)) + ' · ' : '') + (left > 0 ? T('adBoost', BOOST_MIN, left, ADC_MAX) : '');
+  b.onclick = () => { if (b.disabled) return; b.disabled = true; ADS.show('rewarded', () => { SV.adc.n++; SV.boost = Math.max(Date.now(), SV.boost || 0) + BOOST_MIN * 60000; persist(); sfx('coins', 1, 0); buildAdCoins(); }, () => { b.textContent = L().adFail; setTimeout(buildAdCoins, 1500); }); };
+}
 function buildShop() {
+  buildAdCoins();
   const box = $('shop'); box.innerHTML = '';
   Object.keys(SHOP).forEach(k => {
     const it = SHOP[k], lv = shopLv(k), maxed = lv >= it.max, cost = shopCost(k);
@@ -2356,11 +2593,11 @@ const NET = {
   levelUp() { for (const c of NET.conns) if (c.pl && !c.pl.left) { c.pl.lvq = (c.pl.lvq || 0) + 1; NET.waiting.add(c.pl.id); if (!c.pl.choices) NET.sendLevel(c.pl, c); } },
   sendLevel(pl, c) {
     if (!(pl.lvq > 0)) return; pl.lvq--; use(pl); pl.choices = rollChoices(nChoices()); use(LPL());
-    (c || NET.conns.find(x => x.pl === pl)).send({ t: 'lv', c: pl.choices.map(q => [q.kind, q.id || '']) });
+    (c || NET.conns.find(x => x.pl === pl)).send({ t: 'lv', c: pl.choices.map(q => [q.kind, q.id || '', q.rar || 0]) });
   },
   gotPick(pl, i) {
     if (!pl.choices) return; const ch = pl.choices[i] || pl.choices[0]; pl.choices = null;
-    use(pl); applyChoice(ch); use(LPL());
+    use(pl); applyChoice(ch); applyRarity(ch); use(LPL());
     if (pl.lvq > 0) NET.sendLevel(pl); else NET.waiting.delete(pl.id);
     if (!NET.waiting.size && NET.hostDoneLv) NET.resume();
   },
@@ -2384,7 +2621,7 @@ const NET = {
     else if (!G || !G.guest) return;
     else if (d.t === 's') NET.applySnap(d);
     else if (d.t === 'inv') { const pl = LPL(); use(pl); pl.weapons.length = 0; for (const a of d.w) pl.weapons.push({ id: a[0], pl, lvl: a[1], evo: !!a[2], t: 0, dmg: 0, q: 0, qt: 0, hits: new Map(), spin: 0 }); for (const k in pl.passives) delete pl.passives[k]; Object.assign(pl.passives, d.p); Object.assign(pl.bl, d.bl); refreshStats(); buildInv(); }
-    else if (d.t === 'lv') { NET.picked = false; G.netChoices = d.c.map(a => ({ kind: a[0], id: a[1] || undefined })); state.mode = 'level'; $('lvTitle').textContent = T('levelUp'); showChoices(G.netChoices); showScreen('sLevel'); sfx('levelup', 0.9, 0); }
+    else if (d.t === 'lv') { NET.picked = false; G.netChoices = d.c.map(a => ({ kind: a[0], id: a[1] || undefined, rar: a[2] || 0 })); state.mode = 'level'; $('lvTitle').textContent = T('levelUp'); showChoices(G.netChoices); showScreen('sLevel'); sfx('levelup', 0.9, 0); }
     else if (d.t === 'msg') { if (d.k === 'shrine') banner(T('bl.' + d.id)[0] || T('shrine')); else if (d.text) banner(d.text); sfx(d.evo ? 'fanfare' : 'chest', 0.8, 0); }
     else if (d.t === 'end') {
       G.won = !!d.won; G.t = d.T; G.kills = d.k; G.lvl = d.l; G.gold = d.g; G.over = true;
@@ -2498,7 +2735,7 @@ function renderGame() {
 
 // ------------------------------------------------------------- boot
 function boot() {
-  resize();
+  resize(); ACC.bind();
   ADS.init().then(() => { ADS.ev('load1'); loadCloudSave(); step(); });
   const fill = $('loadFill');
   let done = 0; const need = 3;

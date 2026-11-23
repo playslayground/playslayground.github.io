@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#161216">
-<title>Dungeon Mower — Play</title>
-<meta name="description" content="Play Dungeon Mower in your browser. Pixel-art horde survival: one hero, thousands of monsters.">
-<link rel="canonical" href="https://is2ui.github.io/dungeon-mower/play/">
+<title>Slayground — Play</title>
+<meta name="description" content="Play Slayground in your browser. Pixel-art horde survival: one hero, thousands of monsters.">
+<link rel="canonical" href="https://playslayground.github.io/play/">
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="apple-touch-icon" href="../img/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -43,11 +43,12 @@
     <button id="dashBtn" aria-label="Dash">»</button>
     <div id="ctrlHint"></div>
     <div id="netWait" data-t="pWaitHost"></div>
+    <div id="bigText"><b></b><span></span></div>
   </div>
 
   <!-- title -->
   <section class="screen" id="sTitle">
-    <div class="logo"><h1>DUNGEON MOWER</h1><div class="sub" data-t="sub"></div></div>
+    <div class="logo"><h1>SLAYGROUND</h1><div class="sub" data-t="sub"></div></div>
     <nav class="menu">
       <button class="btn big" id="bStart" data-t="start"></button>
       <div class="minirow">
@@ -55,9 +56,11 @@
         <button class="btn" id="bQuests" data-t="quests"></button>
         <button class="btn" id="bSettings" data-t="settings"></button>
       </div>
+      <button class="link" id="bAccount" style="display:none"></button>
       <button class="link" id="bCredits" data-t="credits"></button>
     </nav>
-    <div class="titleFoot"><span id="bankTitle"></span><span id="recTitle"></span></div>
+    <div class="titleFoot"><span class="acc"><b id="accLv">Lv 1</b><i><i id="accFill"></i></i></span><span id="bankTitle"></span><span id="recTitle"></span></div>
+    <div id="loginPop"></div>
   </section>
 
   <!-- mode select -->
@@ -118,7 +121,7 @@
     <div class="panel wide">
       <div class="phead"><h2 data-t="armory"></h2><div class="coins"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div></div>
       <div id="shop" class="grid shopgrid"></div>
-      <div class="row end"><button class="btn small" id="bRefund" data-t="refund"></button><button class="btn" data-back data-t="back"></button></div>
+      <div class="row end"><button class="btn small adbtn" id="bAdCoins" style="display:none"></button><button class="btn small" id="bRefund" data-t="refund"></button><button class="btn" data-back data-t="back"></button></div>
     </div>
   </section>
 
@@ -140,6 +143,26 @@
     <div class="panel wide">
       <div class="phead"><h2 data-t="quests"></h2><div class="coins"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div></div>
       <div id="qlist" class="quests"></div>
+      <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- account -->
+  <section class="screen dim" id="sAccount">
+    <div class="panel acc">
+      <h2 data-t="accT"></h2>
+      <div id="accState" class="sub2"></div>
+      <div id="accOut">
+        <button class="btn gbtn" id="aGoogle"><b>G</b> <span data-t="accGoogle"></span></button>
+        <div class="or" data-t="accOr"></div>
+        <input id="aId" autocomplete="username" maxlength="64" data-ph="accId">
+        <input id="aPw" type="password" autocomplete="current-password" maxlength="64" data-ph="accPw">
+        <div class="row"><button class="btn" id="aLogin" data-t="accLogin"></button><button class="btn big" id="aSign" data-t="accSign"></button></div>
+      </div>
+      <div id="accIn" style="display:none">
+        <div class="row"><button class="btn" id="aSync" data-t="accSync"></button><button class="btn" id="aOut" data-t="accLogout"></button></div>
+      </div>
+      <div id="accMsg"></div>
       <div class="row end"><button class="btn" data-back data-t="back"></button></div>
     </div>
   </section>
@@ -195,7 +218,8 @@
       <canvas id="chestCv" width="96" height="64"></canvas>
       <div id="reel" class="reel"></div>
       <div id="chestOut" class="chestOut"></div>
-      <div class="row center"><button class="btn big" id="bTake" data-t="take"></button></div>
+      <div id="chestJack"></div>
+      <div class="row center"><button class="btn" id="bChestAd" style="display:none"></button><button class="btn big" id="bTake" data-t="take"></button></div>
     </div>
   </section>
 
@@ -213,8 +237,8 @@
 
   <!-- results -->
   <section class="screen dim" id="sEnd">
-    <div class="panel wide">
-      <h2 id="endTitle"></h2>
+    <div class="panel endp wide">
+      <h2 id="endTitle"></h2><div id="grade"></div>
       <div class="endStats">
         <div><span data-t="survived"></span><b id="eTime"></b></div>
         <div><span data-t="level"></span><b id="eLvl"></b></div>
@@ -222,6 +246,7 @@
         <div><span data-t="earned"></span><b id="eGold" class="gold"></b></div>
       </div>
       <div id="eRec" class="rec"></div>
+      <div id="eAcc" class="hint"></div>
       <div id="eHint" class="hint"></div>
       <div id="eQuests" class="hint"></div>
       <div id="eWeapons" class="dmgTable"></div>
@@ -233,6 +258,8 @@
 
 <script src="assets/atlas.js"></script>
 <script src="i18n.js"></script>
+<script src="fb.js"></script>
+<script src="ads.js"></script>
 <script src="game.js"></script>
 <script>if('serviceWorker' in navigator){const had=!!navigator.serviceWorker.controller,t0=Date.now();let once=0;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!once&&Date.now()-t0<15000){once=1;location.reload();}});addEventListener('load',()=>navigator.serviceWorker.register('../sw.js').catch(()=>{}));}</script>
 </body>

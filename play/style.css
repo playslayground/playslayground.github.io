@@ -404,3 +404,25 @@ html:lang(ru) #ui *:not(h1),html:lang(ja) #ui *:not(h1),html:lang(tr) #ui *:not(
 .colInfo b{color:var(--gold);margin-right:calc(var(--u)*2)}
 .colInfo span{color:var(--dim)}
 #accState:empty{display:none}
+
+/* diamonds */
+.gem{font-style:normal;color:#72d6ce;text-shadow:var(--u) var(--u) 0 #111;font-weight:700}
+.gem.big{font-size:calc(var(--u)*7);line-height:1}
+.coinbox.dia{color:#cae6f5}
+.coins.dia{color:#cae6f5}
+.gHint{color:var(--dim);font-size:calc(var(--u)*3.8);margin:calc(var(--u)*-2) 0 calc(var(--u)*3);text-align:left}
+.relGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--u)*2)}
+.rel{display:flex;align-items:center;gap:calc(var(--u)*2);background:#1f1a1c;box-shadow:inset 0 0 0 var(--u) #3a3033;padding:calc(var(--u)*1.5) calc(var(--u)*2);text-align:left}
+.rel.lock canvas{filter:brightness(0);opacity:.5}
+.rel .rt{display:flex;flex-direction:column;gap:calc(var(--u)*.5);min-width:0;flex:1}
+.rel b{font-size:calc(var(--u)*3.8)}
+.rel span{font-size:calc(var(--u)*3.2);color:var(--teal);font-family:'Galmuri9'}
+.rel .bar{display:block;height:calc(var(--u)*1.2);background:#111}
+.rel .bar>i{display:block;height:100%;background:var(--gold)}
+.gOut{min-height:calc(var(--u)*24);margin-top:calc(var(--u)*3);flex-wrap:wrap;justify-content:center;gap:calc(var(--u)*2);height:auto}
+.gOut .gs{animation:spop .35s cubic-bezier(.2,1.6,.4,1) both}
+.gOut .gs.rare{box-shadow:inset 0 0 0 var(--u) var(--gold),0 0 calc(var(--u)*3) rgba(250,203,62,.6)}
+.gOut .gs.hero{box-shadow:inset 0 0 0 var(--u) var(--red),0 0 calc(var(--u)*4) var(--red)}
+.gMsg{min-height:1.2em;color:var(--gold)}
+@media (max-width:700px){.relGrid{grid-template-columns:repeat(2,1fr)}}
+.gem.sb{font-size:calc(var(--u)*7);line-height:calc(var(--u)*6)}

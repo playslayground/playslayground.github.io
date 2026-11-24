@@ -63,8 +63,10 @@
     <button class="prof" id="profChip"><span class="pic" id="profPic"></span><span class="pn"><b id="profName"></b><span class="pl"><em id="accLv">Lv 1</em><i class="xp"><i id="accFill"></i></i></span></span></button>
     <div class="tright">
       <div class="coinbox"><span class="ico" data-icon="coin_anim_f0"></span><b class="bank"></b></div>
+      <div class="coinbox dia"><i class="gem">◆</i><b class="diaN"></b></div>
       <div class="sidebtns">
         <button class="sbtn" id="bAttend"><span class="ico" data-icon="chest_full_open_anim_f0"></span><em data-t="attS"></em><i class="dot"></i></button>
+        <button class="sbtn" id="bGacha"><span class="gem sb">◆</span><em data-t="gachaS"></em><i class="dot"></i></button>
         <button class="sbtn" id="bCol"><span class="ico" data-icon="skelet_idle_anim_f0"></span><em data-t="colS"></em><i class="dot"></i></button>
         <button class="sbtn" id="bMissions"><span class="ico" data-icon="weapon_knight_sword"></span><em data-t="mS"></em><i class="dot"></i></button>
       </div>
@@ -154,6 +156,18 @@
       <div id="mWrap"><div id="mlist" class="quests mlist"></div><div class="mfoot" id="mReset"></div></div>
       <div id="qlist" class="quests" style="display:none"></div>
       <div class="row end"><button class="btn" data-back data-t="back"></button></div>
+    </div>
+  </section>
+
+  <!-- treasure draw -->
+  <section class="screen dim" id="sGacha">
+    <div class="panel wide">
+      <div class="phead"><h2 data-t="gachaT"></h2><div class="coins dia"><i class="gem">◆</i><b id="gDia"></b></div></div>
+      <div class="gHint" data-t="gachaHint"></div>
+      <div class="relGrid" id="gRel"></div>
+      <div class="reel gOut" id="gOut"></div>
+      <div class="gMsg" id="gMsg"></div>
+      <div class="row end"><button class="btn big" id="gOne"></button><button class="btn big" id="gTen"></button><button class="btn" data-back data-t="back"></button></div>
     </div>
   </section>
 

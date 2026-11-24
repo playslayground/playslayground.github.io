@@ -65,15 +65,15 @@ const statText = d => d.map(([k, v]) => T('st.' + k, v == null ? '' : num(v))).j
 // ------------------------------------------------------------- data
 const HEROES = {
   knight: { name: 'Aldric', spr: 'knight_m', weapon: 'oath', cost: 0, mod: { hp: 1.1 }, desc: [['hp', 10]] },
-  elf: { name: 'Sefa', spr: 'elf_f', weapon: 'moonbow', cost: 600, mod: { spd: 1.1 }, desc: [['spd', 10]] },
-  dwarf: { name: 'Brom', spr: 'dwarf_m', weapon: 'quake', cost: 1200, mod: { armor: 1 }, desc: [['armor', 1]] },
-  wizard: { name: 'Orrin', spr: 'wizzard_m', weapon: 'comet', cost: 2000, mod: { area: 1.1 }, desc: [['area', 10]] },
-  lizard: { name: 'Kesh', spr: 'lizard_m', weapon: 'fang', cost: 3000, mod: { might: 1.1 }, desc: [['dmg', 10]] },
-  maren: { name: 'Maren', spr: 'knight_f', weapon: 'twin', cost: 4400, mod: { cd: 0.92 }, desc: [['cd', 8]] },
-  hild: { name: 'Hild', spr: 'dwarf_f', weapon: 'skyforge', cost: 6000, mod: { regen: 0.3 }, desc: [['regen', 0.3]] },
-  faelan: { name: 'Faelan', spr: 'elf_m', weapon: 'gale', cost: 7600, mod: { dash: 0.7 }, desc: [['dash', 30]] },
-  ysolde: { name: 'Ysolde', spr: 'wizzard_f', weapon: 'frost', cost: 9600, mod: { growth: 1.15 }, desc: [['xp', 15]] },
-  sska: { name: 'Sska', spr: 'lizard_f', weapon: 'shade', cost: 12000, mod: { crit: 0.1 }, desc: [['crit', 10]] }
+  elf: { name: 'Sefa', spr: 'elf_f', weapon: 'moonbow', cost: 800, mod: { spd: 1.1 }, desc: [['spd', 10]] },
+  dwarf: { name: 'Brom', spr: 'dwarf_m', weapon: 'quake', cost: 1800, mod: { armor: 1 }, desc: [['armor', 1]] },
+  wizard: { name: 'Orrin', spr: 'wizzard_m', weapon: 'comet', cost: 3200, mod: { area: 1.1 }, desc: [['area', 10]] },
+  lizard: { name: 'Kesh', spr: 'lizard_m', weapon: 'fang', cost: 5000, mod: { might: 1.1 }, desc: [['dmg', 10]] },
+  maren: { name: 'Maren', spr: 'knight_f', weapon: 'twin', cost: 7200, mod: { cd: 0.92 }, desc: [['cd', 8]] },
+  hild: { name: 'Hild', spr: 'dwarf_f', weapon: 'skyforge', cost: 9800, mod: { regen: 0.3 }, desc: [['regen', 0.3]] },
+  faelan: { name: 'Faelan', spr: 'elf_m', weapon: 'gale', cost: 12800, mod: { dash: 0.7 }, desc: [['dash', 30]] },
+  ysolde: { name: 'Ysolde', spr: 'wizzard_f', weapon: 'frost', cost: 16000, mod: { growth: 1.15 }, desc: [['xp', 15]] },
+  sska: { name: 'Sska', spr: 'lizard_f', weapon: 'shade', cost: 20000, mod: { crit: 0.1 }, desc: [['crit', 10]] }
 };
 
 const WP = {
@@ -182,11 +182,11 @@ EN.warchief.pats = ['dash', 'spray', 'slam']; EN.shaman.pats = ['ring', 'spray',
 const RISE = new Set(['skelet', 'zombie', 'tiny_zombie', 'ice_zombie']);
 const WAVES = [
   ['tiny_zombie', 'goblin'], ['goblin', 'imp', 'tiny_zombie'], ['skelet', 'imp', 'tiny_slug'], ['skelet', 'zombie', 'muddy'],
-  ['zombie', 'swampy', 'muddy'], ['ice_zombie', 'masked_orc', 'skelet'], ['masked_orc', 'orc_warrior', 'imp'], ['orc_warrior', 'orc_shaman', 'necromancer'],
+  ['zombie', 'swampy', 'muddy'], ['ice_zombie', 'masked_orc', 'skelet', 'orc_shaman'], ['masked_orc', 'orc_warrior', 'imp', 'orc_shaman'], ['orc_warrior', 'orc_shaman', 'masked_orc', 'necromancer'],
   ['necromancer', 'wogol', 'ice_zombie'], ['wogol', 'chort', 'orc_warrior'], ['chort', 'pumpkin_dude', 'doc'], ['doc', 'slug', 'pumpkin_dude', 'chort']
 ];
-const BOSSES = [{ t: 240, type: 'ogre' }, { t: 480, type: 'big_zombie' }, { t: 660, type: 'big_demon', final: true }];
-const SWARMS = [150, 390, 570];
+const BOSSES = [{ t: 195, type: 'ogre' }, { t: 390, type: 'big_zombie' }, { t: 540, type: 'big_demon', final: true }];
+const SWARMS = [120, 315, 465];
 const SEWER_WAVES = [
   ['tiny_slug', 'tiny_zombie'], ['tiny_slug', 'goblin', 'muddy'], ['muddy', 'swampy', 'tiny_slug'], ['swampy', 'zombie', 'slug'],
   ['zombie', 'ice_zombie', 'muddy'], ['ice_zombie', 'slug', 'swampy'], ['orc_shaman', 'swampy', 'slug'], ['necromancer', 'ice_zombie', 'muddy'],
@@ -209,10 +209,10 @@ const HELL_WAVES = [
 ];
 const STAGES = {
   keep: { waves: WAVES, bosses: BOSSES, hp: 1, gold: 1, spikes: 5, cycle: 3.6, tint: null, fount: ['red', 'blue'], floor: 0.86, cols: 14, decal: ['skull'], wall: 'keep', icon: 'ogre_idle_anim_f0' },
-  sewers: { waves: SEWER_WAVES, bosses: [{ t: 240, type: 'big_zombie' }, { t: 480, type: 'ogre' }, { t: 660, type: ['big_zombie', 'ogre'], final: true }], hp: 1.35, gold: 1.3, spikes: 8, cycle: 3.0, tint: '#b4dcbc', fount: ['blue'], floor: 0.7, cols: 10, decal: ['hole', 'skull', 'floor_ladder'], wall: 'sewers', need: 'keep', icon: 'big_zombie_idle_anim_f0' },
-  camp: { waves: CAMP_WAVES, bosses: [{ t: 240, type: 'warchief' }, { t: 480, type: 'shaman' }, { t: 660, type: ['warchief', 'ogre'], final: true }], hp: 1.6, gold: 1.55, spikes: 6, cycle: 3.2, tint: '#ecdfb0', fount: ['red'], floor: 0.8, cols: 12, decal: ['skull', 'hole'], wall: 'camp', need: 'sewers', icon: 'orc_warrior_idle_anim_f0', charge: true },
-  crypt: { waves: CRYPT_WAVES, bosses: [{ t: 240, type: 'big_zombie' }, { t: 480, type: 'lich' }, { t: 660, type: ['lich', 'big_zombie'], final: true }], hp: 1.9, gold: 1.85, spikes: 9, cycle: 2.8, tint: '#b6c6f4', fount: ['blue'], floor: 0.75, cols: 16, decal: ['skull', 'skull', 'skull'], wall: 'crypt', need: 'camp', icon: 'necromancer_anim_f0', rise: true, light: 0.78 },
-  hell: { waves: HELL_WAVES, bosses: [{ t: 240, type: 'pumpking' }, { t: 480, type: 'big_demon' }, { t: 660, type: ['big_demon', 'big_demon'], final: true }], hp: 2.3, gold: 2.2, spikes: 13, cycle: 2.5, tint: '#ffbcaa', fount: ['red'], floor: 0.8, cols: 8, decal: ['skull', 'skull', 'hole'], wall: 'hell', need: 'crypt', icon: 'big_demon_idle_anim_f0' }
+  sewers: { waves: SEWER_WAVES, bosses: [{ t: 195, type: 'big_zombie' }, { t: 390, type: 'ogre' }, { t: 540, type: ['big_zombie', 'ogre'], final: true }], hp: 1.35, gold: 1.3, spikes: 8, cycle: 3.0, tint: '#b4dcbc', fount: ['blue'], floor: 0.7, cols: 10, decal: ['hole', 'skull', 'floor_ladder'], wall: 'sewers', need: 'keep', icon: 'big_zombie_idle_anim_f0' },
+  camp: { waves: CAMP_WAVES, bosses: [{ t: 195, type: 'warchief' }, { t: 390, type: 'shaman' }, { t: 540, type: ['warchief', 'ogre'], final: true }], hp: 1.6, gold: 1.55, spikes: 6, cycle: 3.2, tint: '#ecdfb0', fount: ['red'], floor: 0.8, cols: 12, decal: ['skull', 'hole'], wall: 'camp', need: 'sewers', icon: 'orc_warrior_idle_anim_f0', charge: true },
+  crypt: { waves: CRYPT_WAVES, bosses: [{ t: 195, type: 'big_zombie' }, { t: 390, type: 'lich' }, { t: 540, type: ['lich', 'big_zombie'], final: true }], hp: 1.9, gold: 1.85, spikes: 9, cycle: 2.8, tint: '#b6c6f4', fount: ['blue'], floor: 0.75, cols: 16, decal: ['skull', 'skull', 'skull'], wall: 'crypt', need: 'camp', icon: 'necromancer_anim_f0', rise: true, light: 0.78 },
+  hell: { waves: HELL_WAVES, bosses: [{ t: 195, type: 'pumpking' }, { t: 390, type: 'big_demon' }, { t: 540, type: ['big_demon', 'big_demon'], final: true }], hp: 2.3, gold: 2.2, spikes: 13, cycle: 2.5, tint: '#ffbcaa', fount: ['red'], floor: 0.8, cols: 8, decal: ['skull', 'skull', 'hole'], wall: 'hell', need: 'crypt', icon: 'big_demon_idle_anim_f0' }
 };
 function upLines(id) {
   const lv = WP[id].lv, cur = Object.assign({}, lv[0]), out = [];
@@ -240,7 +240,7 @@ for (const id in HEROES) HEROES[id]._nm = () => [hn(id), T('cl.' + id) + str('do
 for (const id in STAGES) STAGES[id]._nm = () => str('m.' + id);
 for (const id in EN) if (EN[id].boss) EN[id]._nm = () => T('b.' + id);
 const QUESTS = [['kills', 500, 100], ['kills', 5000, 400], ['kills', 25000, 1500], ['clear', 'keep', 150], ['clear', 'sewers', 300], ['clear', 'camp', 450], ['clear', 'crypt', 600], ['clear', 'hell', 1000],
-  ['evolve', 1, 150], ['evolve', 10, 600], ['lvl', 20, 150], ['lvl', 40, 500], ['time', 5, 100], ['time', 10, 300], ['heroes', 4, 300], ['heroes', 10, 1500],
+  ['evolve', 1, 150], ['evolve', 10, 600], ['lvl', 20, 150], ['lvl', 40, 500], ['time', 5, 100], ['time', 8, 300], ['heroes', 4, 300], ['heroes', 10, 1500],
   ['chests', 25, 300], ['bosses', 10, 300], ['bosses', 50, 1200], ['shrines', 10, 250], ['torment', 1, 500], ['torment', 3, 1500]].map(([t, n, r]) => ({ id: t + '_' + n, t, n, r }));
 const mapRec = id => (SV.maps && SV.maps[id]) || { best: 0, cleared: false, tor: 0 };
 const curTor = id => Math.max(0, Math.min((SV.tor && SV.tor[id]) || 0, mapRec(id).tor || 0, 5));
@@ -249,7 +249,7 @@ const qGoal = q => q.t === 'clear' ? 1 : q.n;
 const qText = q => q.t === 'clear' ? T('q.clear', nm(STAGES[q.n])[0]) : T('q.' + q.t, q.n);
 function checkQuests() { const done = []; for (const q of QUESTS) if (!SV.q[q.id] && qProg(q) >= qGoal(q)) { SV.q[q.id] = 1; SV.coins += q.r; done.push(q); } if (done.length) persist(); return done; }
 const stageOpen = id => !STAGES[id].need || mapRec(STAGES[id].need).cleared;
-const ELITES = [90, 200, 330, 420, 540, 620];
+const ELITES = [70, 160, 265, 340, 435, 500];
 
 // ------------------------------------------------------------- assets
 const sheet = new Image();
@@ -605,7 +605,7 @@ function mkBase(heroId, shop) {
 }
 function mkPlayer(heroId, shop, id, local, name) {
   const base = mkBase(heroId, shop), tm = HTIER[heroId] || 0;
-  base.maxhp = Math.round(base.maxhp * (1 + 0.03 * tm)); base.might *= 1 + 0.02 * tm;
+  base.maxhp = Math.round(base.maxhp * (1 + 0.045 * tm)); base.might *= 1 + 0.04 * tm;
   return {
     id, local, name: name || '', hero: heroId, base, shop: shop || {},
     p: { x: AW / 2 + (id ? (id % 2 ? 26 : -26) * Math.ceil(id / 2) : 0), y: AH / 2 + 30, hp: base.maxhp, inv: 0, face: 1, dirx: 1, diry: 0, moving: false, anim: 0, hurtT: 0, dashT: 0, dashCd: 0, ddx: 1, ddy: 0 },
@@ -627,7 +627,7 @@ function newRun(heroId, opts) {
     hero: heroId, t: 0, kills: 0, gold: 0, lvl: 1, xp: 0, pendingLv: 0, players: [],
     enemies: [], shots: [], pickups: [], parts: [], nums: [], blasts: [], swings: [], zones: [], zaps: [], slashes: [], eshots: [], warns: [], hazards: [], totem: null, bloodT: 0, meteorT: 0, combo: 0, comboT: 0, bestCombo: 0, splats: [], rings: [], amb: [], comboTier: 0, words: [], frameKills: 0, coinChain: 0, coinT: 0, slowT: 0, beatT: 0,
     spawnAcc: 0, bossesDone: {}, swarmsDone: {}, elitesDone: {}, boss: null,
-    stage: opts.stage || SV.stage || 'keep', bossList: [], finalLeft: 0, rushAt: rnd(170, 400), rushT: 0, rushDone: false, crateT: 30,
+    stage: opts.stage || SV.stage || 'keep', bossList: [], finalLeft: 0, rushAt: rnd(140, 330), rushT: 0, rushDone: false, crateT: 30,
     tor: opts.tor != null ? opts.tor : curTor(SV.stage || 'keep'), fz: 0, fzIdle: 0, frenzyT: 0, freezeT: 0, hasteT: 0, ghosts: [], risers: [], shrines: [], shrineOpen: false, chargeT: 70,
     shake: 0, hitstop: 0, cam: { x: AW / 2 - VW / 2, y: AH / 2 - VH / 2 }, won: false, over: false, lightPulse: 0, redT: 0,
     mode: opts.mode || 'solo', daily: opts.daily || null
@@ -660,7 +660,7 @@ const refreshStats = () => { ST = S(); if (curPL) curPL.ST = ST; };
 
 const SIGPW = { oath: 0.7, moonbow: 0.66, quake: 2.6, comet: 1.4, fang: 2.6, twin: 0.64, skyforge: 1.15, gale: 3.2, frost: 3.4, shade: 0.85 };
 const HTIER = { knight: 0, elf: 1, dwarf: 2, wizard: 3, lizard: 4, maren: 5, hild: 6, faelan: 7, ysolde: 8, sska: 9 };
-const tierMul = h => 1 + 0.08 * (HTIER[h] || 0);
+const tierMul = h => 1 + 0.13 * (HTIER[h] || 0);
 // each class has its own arsenal and its own evolution partners
 const HKIT = {
   knight: { oath: 'guard', sword: 'might', mace: 'vitality', spear: 'reach', hammers: 'pulse' },
@@ -749,17 +749,18 @@ const GS = (k, d) => { try { return window.GStats ? GStats.cfg(k, d) : d; } catc
 let COINV = 0.3; // share of a gem's value paid out as coins
 try { if (window.GStats) GStats.ready.then(() => { COINV = GS('COINV', 0.3); }); } catch (e) {}
 const boostLeft = () => Math.max(0, ((SV.boost || 0) - Date.now()) / 1000);
-const SGOLD = () => STG().gold * (1 + 0.2 * G.tor) * (MOD('rich') ? 1.5 : 1) * (G.bloodT > 0 ? 2 : 1) * (boostLeft() > 0 ? 2 : 1);
+const CVAL = 0.4; // run-coin scale (economy pass 11/25)
+const SGOLD = () => CVAL * STG().gold * (1 + 0.2 * G.tor) * (MOD('rich') ? 1.5 : 1) * (G.bloodT > 0 ? 2 : 1) * (boostLeft() > 0 ? 1.5 : 1);
 const tempo = () => (G.frenzyT > 0 ? 0.6 : 1) * (G.hasteT > 0 ? 0.8 : 1);
-function hpMul() { const m = G.t / 60; return (1 + m * 0.36 + Math.max(0, m - 5) * 0.42) * SHP() * (MOD('brute') ? 1.3 : 1) * (G.players && G.players.length > 1 ? 1 + 0.45 * (G.players.length - 1) : 1); }
+function hpMul() { const u = G.t / 45; return (1 + u * 0.42 + u * u * 0.006) * SHP() * (MOD('brute') ? 1.3 : 1) * (G.players && G.players.length > 1 ? 1 + 0.45 * (G.players.length - 1) : 1); }
 function spawnEnemy(type, x, y, o = {}) {
   const d = EN[type];
   const runF = frames(d.spr || type, 'run'), idleF = frames(d.spr || type, 'idle');
   const f0 = AT[runF[0]];
   const big = d.boss ? 1 : 0, sc = o.elite ? 2 : (d.bsc || 1);
-  const hp = d.boss ? d.hp * 1.8 * (1 + G.t / 600) * SHP() * (G.players && G.players.length > 1 ? 1 + 0.6 * (G.players.length - 1) : 1) : d.hp * hpMul() * (o.elite ? 14 : 1);
+  const hp = d.boss ? d.hp * 1.8 * (1 + G.t / 490) * SHP() * (G.players && G.players.length > 1 ? 1 + 0.6 * (G.players.length - 1) : 1) : d.hp * hpMul() * (o.elite ? 14 : 1);
   const e = {
-    type, x, y, hp, maxhp: hp, spd: d.spd * rnd(0.9, 1.1) * (o.elite ? 0.9 : 1) * (MOD('swift') ? 1.2 : 1), dmg: d.dmg * 1.6 * (o.elite ? 1.6 : 1) * (1 + G.t / 420) * (1 + (STG().hp - 1) * 0.5) * (1 + 0.1 * G.tor), static: !!o.static, xp: d.xp * (o.elite ? 10 : 1),
+    type, x, y, hp, maxhp: hp, spd: d.spd * rnd(0.9, 1.1) * (o.elite ? 0.9 : 1) * (MOD('swift') ? 1.2 : 1), dmg: d.dmg * 1.6 * (o.elite ? 1.6 : 1) * (1.12 + G.t / 430) * (1 + (STG().hp - 1) * 0.5) * (1 + 0.1 * G.tor), static: !!o.static, xp: d.xp * (o.elite ? 10 : 1),
     run: runF, idle: idleF, h: f0 ? f0[3] : 16, r: big ? 13 : (f0 && f0[3] > 18 ? 7 : 6) * sc, sc, elite: !!o.elite, boss: !!d.boss, final: !!o.final,
     flash: 0, kbx: 0, kby: 0, anim: rnd(0, 1), face: 1, hitCd: {}, dash: 0, dashT: rnd(3, 5), summonT: 6, tele: 0, swarm: o.swarm ? { vx: o.vx, vy: o.vy, t: 9 } : null
   };
@@ -768,8 +769,8 @@ function spawnEnemy(type, x, y, o = {}) {
 }
 function spawner(dt) {
   const t = G.t;
-  const WV = STG().waves, wave = WV[Math.min(WV.length - 1, Math.floor(t / 60))];
-  const rate = Math.min(1.4 + (t / 60) * 1.35, 18) * (G.totem ? 1.8 : 1) * (G.bloodT > 0 ? 1.3 : 1) * (G.boss ? 0.6 : 1) * (MOD('horde') ? 1.35 : 1) * (G.players.length > 1 ? 1 + 0.3 * (G.players.length - 1) : 1);
+  const WV = STG().waves, wave = WV[Math.min(WV.length - 1, Math.floor(t / 45))];
+  const rate = Math.min(2.1 + (t / 45) * 1.3, 18) * (G.totem ? 1.8 : 1) * (G.bloodT > 0 ? 1.3 : 1) * (G.boss ? 0.6 : 1) * (MOD('horde') ? 1.35 : 1) * (G.players.length > 1 ? 1 + 0.3 * (G.players.length - 1) : 1);
   G.spawnAcc += dt * rate;
   while (G.spawnAcc >= 1) {
     G.spawnAcc -= 1;
@@ -873,6 +874,7 @@ function kill(e) {
     const p = pick(pts); const a = rnd(0, TAU), s = rnd(20, 70) * (e.boss ? 1.6 : 1);
     G.parts.push({ x: e.x + p[0] * e.sc, y: e.y + p[1] * e.sc, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 30, g: 160, c: p[2], t: 0, life: rnd(0.35, 0.7), sz: e.sc });
   }
+  if (e.bounty > 0) { for (let i = 0; i < 18; i++) dropCoin(e.x + rnd(-16, 16), e.y + rnd(-10, 10), 4); banner(T('bountyDone')); sfx('fanfare', 0.9, 0); }
   if (e.type === 'tgoblin') { for (let i = 0; i < 26; i++) dropCoin(e.x + rnd(-18, 18), e.y + rnd(-12, 12), 4); G.pickups.push({ k: 'pmagnet', x: e.x, y: e.y, t: 0 }); sfx('coins', 1, 0); return; }
   if (e.type === 'slug' && !e.split) for (let i = 0; i < 2; i++) { const q = spawnEnemy('tiny_slug', e.x + rnd(-8, 8), e.y + rnd(-6, 6)); q.split = true; }
   if (e.type === 'doc') G.hazards.push({ x: e.x, y: e.y, r: 16, t: 0, life: 4, tick: 0, dmg: e.dmg * 0.4 });
@@ -944,7 +946,7 @@ function nuke(withBoss) {
 }
 
 // ------------------------------------------------------------- impact
-const INT = () => 1 + Math.min(2, G.lvl / 14 + G.t / 500); // effects grow with the run
+const INT = () => 1 + Math.min(2, G.lvl / 14 + G.t / 410); // effects grow with the run
 const now = () => performance.now() / 1000;
 function ring(x, y, r0, r1, life, c, th) { if (G.rings.length < 60) G.rings.push({ x, y, r0, r1, t0: now(), life, c, th: th || 1 }); }
 function sparks(x, y, n, cols, sp) { if (G.parts.length > 1100) return; for (let i = 0; i < n; i++) { const a = rnd(0, TAU), v = rnd(0.5, 1) * (sp || 160); G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 20, g: 120, c: pick(cols), t: 0, life: rnd(0.12, 0.28), sz: 1 }); } }
@@ -981,7 +983,7 @@ function applyRarity(c) {
 const accNeed = l => Math.round(220 * Math.pow(l, 1.3));
 function accGain(xp) {
   const A = SV.acc = SV.acc || { lvl: 1, xp: 0 }; let ups = 0, coins = 0;
-  A.xp += xp; while (A.xp >= accNeed(A.lvl)) { A.xp -= accNeed(A.lvl); A.lvl++; ups++; coins += 150 + 50 * A.lvl; }
+  A.xp += xp; while (A.xp >= accNeed(A.lvl)) { A.xp -= accNeed(A.lvl); A.lvl++; ups++; coins += 40 + 15 * A.lvl; }
   if (coins) SV.coins += coins; return { ups, coins, lvl: A.lvl };
 }
 // daily login streak
@@ -998,7 +1000,7 @@ function attClaim() {
   const r = attReward(s.n); SV.login.n = s.n; SV.login.d = dayKey(); SV.coins += r; persist(); return r;
 }
 // daily missions
-const MPOOL = [['kills', 300, 60], ['kills', 800, 100], ['runs', 2, 50], ['runs', 4, 90], ['time', 5, 70], ['time', 10, 110], ['chests', 3, 60], ['bosses', 1, 80], ['lvl', 15, 60], ['lvl', 25, 100], ['gold', 300, 60], ['gold', 800, 100], ['daily', 1, 80], ['evos', 1, 90]];
+const MPOOL = [['kills', 300, 60], ['kills', 800, 100], ['runs', 2, 50], ['runs', 4, 90], ['time', 4, 70], ['time', 7, 110], ['chests', 3, 60], ['bosses', 1, 80], ['lvl', 15, 60], ['lvl', 25, 100], ['gold', 300, 60], ['gold', 800, 100], ['daily', 1, 80], ['evos', 1, 90]];
 const MBONUS = 150;
 function missions() {
   const key = dayKey(); let M = SV.dm;
@@ -1027,7 +1029,7 @@ const colSV = () => SV.col || (SV.col = { e: {}, w: {}, c: {} });
 const COLE = Object.keys(EN).filter(k => k !== 'crate');
 const COLW = []; for (const id in WP) { COLW.push(id); if (WP[id].evo) COLW.push('evo_' + id); }
 const colSeen = (tab, id) => tab === 'w' ? !!colSV().w[id] : (colSV().e[id] || 0) > 0;
-const colRew = (tab, id) => tab === 'w' ? (id.startsWith('evo_') ? 80 : 30) : (EN[id].boss ? 100 : 20);
+const colRew = (tab, id) => tab === 'w' ? (id.startsWith('evo_') ? 30 : 10) : (EN[id].boss ? 40 : 8);
 const colNew = (tab, id) => colSeen(tab, id) && !colSV().c[tab + ':' + id];
 const colClaimable = () => COLW.some(id => colNew('w', id)) || COLE.some(id => colNew('e', id));
 const enName = id => { const n = L()['en.' + id] || I18.en['en.' + id]; return n || id; };
@@ -1068,7 +1070,7 @@ function buildCol(tab) {
 }
 document.querySelectorAll('#colTabs button').forEach(b => b.onclick = () => { sfx('move', 0.5, 0); buildCol(b.dataset.tab); });
 function rankOf() {
-  const sc = G.t / 7.2 + G.kills / 40 + (G.won ? 40 : 0);
+  const sc = G.t / 5.9 + G.kills / 40 + (G.won ? 40 : 0);
   return sc >= 150 ? ['S', '#facb3e'] : sc >= 115 ? ['A', '#9cdb43'] : sc >= 80 ? ['B', '#72d6ce'] : sc >= 45 ? ['C', '#c6b7be'] : ['D', '#aa8d7a'];
 }
 
@@ -1086,7 +1088,7 @@ function bossSlam(e, tp) {
   for (let i = 0; i < 4; i++) { const a = rnd(0, TAU), rr = rnd(40, 90); G.warns.push({ x: clamp(tp.x + Math.cos(a) * rr, 10, AW - 10), y: clamp(tp.y + Math.sin(a) * rr * 0.8, 16, AH - 6), r: 24, t: -0.95 - i * 0.12, dmg: e.dmg * 0.9 }); }
   sfx('portal', 0.5, 0.2);
 }
-const EVENTS = ['goblin', 'meteor', 'totem', 'gold', 'blood'];
+const EVENTS = ['goblin', 'meteor', 'totem', 'gold', 'blood', 'bounty'];
 function startEvent() {
   let k = pick(EVENTS); if (k === G.evKind) k = pick(EVENTS);
   G.evKind = k; G.evSeq = (G.evSeq || 0) + 1; banner(T('ev.' + k)); sfx('fanfare', 0.6, 0);
@@ -1096,12 +1098,13 @@ function startEvent() {
   else if (k === 'totem') { const a = rnd(0, TAU); G.totem = { x: clamp(A.x + Math.cos(a) * 90, 30, AW - 30), y: clamp(A.y + Math.sin(a) * 70, 40, AH - 20), r: 34, prog: 0, t: 0, life: 30 }; }
   else if (k === 'gold') { for (let i = 0; i < 30; i++) { const a = rnd(0, TAU), rr = rnd(30, 130); dropCoin(clamp(A.x + Math.cos(a) * rr, 10, AW - 10), clamp(A.y + Math.sin(a) * rr * 0.8, 16, AH - 6), 4); } }
   else if (k === 'blood') { G.bloodT = 20; }
+  else if (k === 'bounty') { const WV = STG().waves, wv = WV[Math.min(WV.length - 1, Math.floor(G.t / 45))], [x, y] = spawnPos(20); const e = spawnEnemy(pick(wv), x, y, { elite: true }); e.hp = e.maxhp = e.maxhp * 0.7; e.bounty = 30; e.spd *= 1.15; }
 }
 function updateHazards(dt, LP) {
-  if (G.evT == null) G.evT = rnd(55, 80);
-  if (!G.won && G.t >= G.evT) { G.evT = G.t + rnd(65, 100); if (!G.bossList.some(b => b.hp > 0)) startEvent(); }
+  if (G.evT == null) G.evT = rnd(40, 60);
+  if (!G.won && G.t >= G.evT) { G.evT = G.t + rnd(48, 72); if (!G.bossList.some(b => b.hp > 0)) startEvent(); }
   if (G.bloodT > 0) G.bloodT -= dt;
-  if (G.meteorT > 0) { G.meteorT -= dt; G.meteorAcc += dt; while (G.meteorAcc > 0.42) { G.meteorAcc -= 0.42; const al = alivePL(), A = (al.length ? pick(al) : G.players[0]).p; G.warns.push({ x: clamp(A.x + rnd(-120, 120), 10, AW - 10), y: clamp(A.y + rnd(-90, 90), 16, AH - 6), r: 20, t: -0.9, dmg: 14 * (1 + G.t / 420), meteor: true }); } }
+  if (G.meteorT > 0) { G.meteorT -= dt; G.meteorAcc += dt; while (G.meteorAcc > 0.42) { G.meteorAcc -= 0.42; const al = alivePL(), A = (al.length ? pick(al) : G.players[0]).p; G.warns.push({ x: clamp(A.x + rnd(-120, 120), 10, AW - 10), y: clamp(A.y + rnd(-90, 90), 16, AH - 6), r: 20, t: -0.9, dmg: 14 * (1 + G.t / 340), meteor: true }); } }
   const T0 = G.totem;
   if (T0) { T0.t += dt; if (G.players.some(q => !q.down && dist2(q.p.x, q.p.y, T0.x, T0.y) < T0.r * T0.r)) T0.prog += dt;
     if (T0.prog >= 6) { dropChest(T0.x, T0.y, false); G.pickups.push({ k: 'pmagnet', x: T0.x + 14, y: T0.y, t: 0 }); banner(T('totemDone')); sfx('fanfare', 0.9, 0); burst(T0.x, T0.y - 8, 40, ['#9b5ba5', '#fdf7ed', '#facb3e'], 140, 0.6, 0); G.totem = null; }
@@ -1115,7 +1118,7 @@ function updateHazards(dt, LP) {
     const w = G.warns[i]; w.t += dt;
     if (w.t >= 0 && !w.done) { w.done = true;
       for (const pl of G.players) if (!pl.down && dist2(pl.p.x, pl.p.y - 4, w.x, w.y) < w.r * w.r) { use(pl); hurtPlayer(w.dmg); }
-      use(LP); if (w.meteor) queryR(w.x, w.y, w.r + 10, e => { if (!e.static && dist2(w.x, w.y, e.x, e.y) < w.r * w.r) damage(e, 60 * (1 + G.t / 300), null, e.x - w.x, e.y - w.y, 1.2); });
+      use(LP); if (w.meteor) queryR(w.x, w.y, w.r + 10, e => { if (!e.static && dist2(w.x, w.y, e.x, e.y) < w.r * w.r) damage(e, 60 * (1 + G.t / 245), null, e.x - w.x, e.y - w.y, 1.2); });
       burst(w.x, w.y - 2, 18, w.meteor ? ['#fdf7ed', '#facb3e', '#ee8e2e', '#da4e38'] : ['#775c55', '#aa8d7a', '#483b3a'], w.r * 3, 0.45, 60); G.shake = Math.max(G.shake, 0.15); sfx(w.meteor ? 'boom' : 'impact', 0.45, 0.15, 0.06); }
     if (w.t > 0.2) G.warns.splice(i, 1);
   }
@@ -1751,9 +1754,10 @@ function update(dt) {
     if (e.slowT > 0) { e.slowT -= dt; sp *= 1 - (e.slow || 0); }
     if (G.bloodT > 0) sp *= 1.25;
     const BH = EN[e.type];
-    if (BH.shoot && !e.boss) { if (e.shT == null) e.shT = rnd(1.5, 3.5); e.shT -= dt; if (e.shT <= 0 && d < 175) { e.shT = rnd(3.2, 4.6); eShot(e.x, e.y - e.h * e.sc / 2, Math.atan2(dy, dx), 72, e.dmg * 0.8, 1); e.flash = 0.12; } if (e.shT > 2.9) sp *= 0.25; }
+    if (BH.shoot && !e.boss) { if (e.shT == null) e.shT = rnd(1.5, 3.5); e.shT -= dt; if (e.shT <= 0 && d < 165 && !((G.castCd || 0) > G.t)) { G.castCd = G.t + 0.45; e.shT = rnd(4.0, 5.6); eShot(e.x, e.y - e.h * e.sc / 2, Math.atan2(dy, dx), 72, e.dmg * 0.6, 1); e.flash = 0.12; } if (e.shT > 2.9) sp *= 0.25; }
     if (BH.leap && !e.boss) { if (e.lpT == null) e.lpT = rnd(2, 4); e.lpT -= dt; if (e.lp > 0) { e.lp -= dt; sp *= 3.3; } else if (e.lpT <= 0 && d < 130) { e.lpT = rnd(3, 5); e.lp = 0.32; } else if (e.lpT < 0.35) { sp *= 0.1; e.flash = Math.max(e.flash, ((e.lpT * 20) | 0) % 2 ? 0.04 : 0); } }
     if (BH.flee) { e.life = (e.life || 16) - dt; if (e.life <= 0) { e.hp = 0; continue; } }
+    if (e.bounty) { e.bounty -= dt; if (e.bounty <= 0) { e.bounty = 0; e.elite = false; e.gone = true; e.hp = 0; banner(T('bountyLost')); continue; } }
     if (e.spinT > 0) { e.spinT -= dt; sp *= 0.25; e.spAcc = (e.spAcc || 0) + dt; while (e.spAcc > 0.09) { e.spAcc -= 0.09; e.spinA += 0.42; for (let k2 = 0; k2 < 2; k2++) eShot(e.x, e.y - 12, e.spinA + k2 * Math.PI, 82, e.dmg * 0.4, 0); } }
     if (e.burst > 0) { e.burstT = (e.burstT || 0) - dt; if (e.burstT <= 0) { e.burstT = 0.3; e.burst--; const a0 = Math.atan2(dy, dx); for (let k2 = -2; k2 <= 2; k2++) eShot(e.x, e.y - 12, a0 + k2 * 0.22, 118, e.dmg * 0.45, 0); sfx('shoot', 0.4, 0.2); } sp *= 0.3; }
     if (e.swarm) { e.swarm.t -= dt; if (e.swarm.t <= 0) e.swarm = null; }
@@ -1851,7 +1855,7 @@ function update(dt) {
   if (VW > AW + 80) G.cam.x = (AW - VW) / 2; if (VH > AH + 104) G.cam.y = (AH - VH) / 2;
 
   // music by phase
-  if (!G.won) playMusic(G.t < 240 ? 'level1' : G.t < 480 ? 'level2' : 'level3');
+  if (!G.won) playMusic(G.t < 195 ? 'level1' : G.t < 390 ? 'level2' : 'level3');
   hud();
 }
 
@@ -2029,6 +2033,7 @@ function drawEnemy(e, cx, cy) {
   if (e.flash > 0 && !e.static && !e.boss) { const f = Math.min(1, e.flash / 0.12); vctx.save(); vctx.translate(Math.round(X), Math.round(Y)); vctx.scale(1 + 0.28 * f, 1 - 0.22 * f); spr(name, 0, 0, { flip, scale: e.sc, flash: true }); vctx.restore(); }
   else spr(name, X, Y, { flip, scale: e.sc, flash: e.flash > 0 });
   if (e.hitCd && G && state.mode !== 'title' && !e.boss && (G.freezeT > 0 || e.stunT > 0)) spr(name, X, Y, { flip, scale: e.sc, ice: true, alpha: 0.5 });
+  if (e.bounty > 0) { const t = performance.now() / 1000, hy = Math.round(Y - e.h * e.sc - 10 - Math.abs(Math.sin(t * 3)) * 2); const bw = 18, bx = Math.round(X - bw / 2); vctx.fillStyle = '#222'; vctx.fillRect(bx - 1, hy + 4, bw + 2, 3); vctx.fillStyle = '#facb3e'; vctx.fillRect(bx, hy + 5, Math.round(bw * e.bounty / 30), 1); spr('coin_anim_f' + ((t * 8 | 0) % 4), X, hy - 1, { scale: 1.5 }); }
   if (e.type === 'tgoblin') { const t = performance.now() / 1000; if ((t * 6 | 0) % 2) spr(name, X, Y, { flip, scale: e.sc, flash: true, alpha: 0.6 }); vctx.fillStyle = '#facb3e'; vctx.fillRect(Math.round(X) - 1, Math.round(Y - e.h - 5 - Math.abs(Math.sin(t * 4)) * 2), 3, 3); }
   if ((e.elite || e.boss) && e.hp < e.maxhp && !e.boss) {
     const bw = 20, bx = Math.round(X - bw / 2), by = Math.round(Y - e.h * e.sc - 5);
@@ -2106,7 +2111,7 @@ function buildInv() {
 let hudLast = {};
 function hud() {
   const set = (id, v) => { if (hudLast[id] !== v) { hudLast[id] = v; $(id).textContent = v; } };
-  set('timer', fmt(G.t)); set('kills', G.kills); set('gold', Math.floor(G.gold) + (boostLeft() > 0 ? ' ×2' : '')); set('lvl', 'LV ' + G.lvl);
+  set('timer', fmt(G.t)); set('kills', G.kills); set('gold', Math.floor(G.gold) + (boostLeft() > 0 ? ' ×1.5' : '')); set('lvl', 'LV ' + G.lvl);
   $('xpfill').style.width = ((G.guest ? G.xpFrac || 0 : G.xp / xpNeed(G.lvl)) * 100).toFixed(1) + '%';
   const fzv = Math.round((G.frenzyT > 0 ? G.frenzyT / 8 : G.fz) * 100), fzo = G.frenzyT > 0;
   if (hudLast.fz !== fzv) { hudLast.fz = fzv; $('fzfill').style.width = fzv + '%'; }
@@ -2154,7 +2159,7 @@ function finishRun() {
   if (G.daily) {
     const sc = dailyScore(), dl = SV.daily; dl.runs++;
     if (sc > dl.best) { dl.best = sc; dailyMsg = T('dailyNew', sc); } else dailyMsg = T('dailyScore', sc, dl.best);
-    if (!dl.paid && G.t >= 300) { dl.paid = true; SV.coins += 200; dailyMsg += str('gap') + T('dailyPaid', 200); }
+    if (!dl.paid && G.t >= 240) { dl.paid = true; SV.coins += 200; dailyMsg += str('gap') + T('dailyPaid', 200); }
   }
   SV.coins += earned; SV.runs++;
   const acc = accGain(G.kills + Math.floor(G.t) + (G.won ? 500 : 0));
@@ -2349,7 +2354,7 @@ function refreshTitle() {
 function toTitle() {
   state.mode = 'title'; state.paused = false; $('hud').classList.remove('show'); screenStack = [];
   showScreen('sTitle'); refreshTitle(); playMusic('title'); genWorld(); initAttract();
-  if (attState().pending) setTimeout(() => { if (curScreen === 'sTitle' && attState().pending) openAttend(); }, 700);
+  if (SV.runs > 0 && attState().pending) setTimeout(() => { if (curScreen === 'sTitle' && attState().pending) openAttend(); }, 700);
 }
 function openAttend() { buildAttend(); go('sAttend'); }
 function buildAttend(popIdx) {
@@ -2526,7 +2531,7 @@ $('bGo2').onclick = () => {
 };
 
 // armory
-const ADC_MAX = 4, BOOST_MIN = 30;
+const ADC_MAX = 3, BOOST_MIN = 20;
 function adCoinsLeft() { const d = new Date().toDateString(); if (!SV.adc || SV.adc.d !== d) SV.adc = { d, n: 0 }; return ADC_MAX - SV.adc.n; }
 function buildAdCoins() {
   const b = $('bAdCoins'); if (!b) return; const left = adCoinsLeft(), bl = boostLeft();
@@ -2850,7 +2855,7 @@ function guestUpdate(dt) {
   NET.sendT -= dt;
   if (NET.sendT <= 0) { NET.sendT = 0.05; NET.send({ t: 'in', x: Math.round(p.x), y: Math.round(p.y), f: p.face, m: p.moving ? 1 : 0, dx: Math.round(p.dirx * 100) / 100, dy: Math.round(p.diry * 100) / 100, dash: NET.dashT > 0 ? 1 : 0 }); }
   if (performance.now() - NET.lastT > 8000) NET.hostGone();
-  playMusic(G.t < 240 ? 'level1' : G.t < 480 ? 'level2' : 'level3');
+  playMusic(G.t < 195 ? 'level1' : G.t < 390 ? 'level2' : 'level3');
   hud();
 }
 $('pCreate').onclick = () => { SV.pname = ($('pName').value || '').trim().slice(0, 12) || NET.name(); persist(); NET.create(); };

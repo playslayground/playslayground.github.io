@@ -4,3 +4,6 @@ Art: 16x16 DungeonTileset II v1.7 by 0x72 — CC0 1.0 — https://0x72.itch.io/d
 Music: Retro Game Music Pack (5 Action Chiptunes) by Juhani Junkala — CC0 1.0
 Sound effects: The Essential Retro Video Game Sound Effects Collection by Juhani Junkala — CC0 1.0
 Font: Galmuri by Lee Minseo — SIL Open Font License 1.1 (see fonts/OFL.txt)
+
+Additional characters: "16x16 Enchanted Forest Characters" by Superdark - https://superdark.itch.io/enchanted-forest-characters (free for commercial use)
+Additional items: "Dungeon Tileset II Extended" by Niji (nijikokun) - https://nijikokun.itch.io/dungeontileset-ii-extended (CC0)

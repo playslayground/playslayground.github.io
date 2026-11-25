@@ -83,80 +83,80 @@ const WP = {
     lv: [{ dmg: 7, cd: 0.6, n: 1, pierce: 1 }, { n: 2 }, { dmg: 10 }, { n: 3, pierce: 2 }, { cd: 0.42 }], evo: { dmg: 15, cd: 0.4, n: 8, pierce: 3 } },
   axe: { icon: 'weapon_throwing_axe', evoIcon: 'weapon_waraxe', pair: 'reach',
     lv: [{ dmg: 18, cd: 1.6, n: 1, area: 1 }, { n: 2 }, { dmg: 26 }, { area: 1.2 }, { n: 3, dmg: 32 }], evo: { dmg: 48, cd: 1.1, n: 5, area: 1.5 } },
-  hammers: { icon: 'weapon_hammer', evoIcon: 'weapon_hammer', pair: 'vitality',
+  hammers: { icon: 'weapon_hammer', evoIcon: 'weapon_big_hammer', pair: 'vitality',
     lv: [{ dmg: 9, n: 1, area: 1, spd: 3.2 }, { n: 2 }, { dmg: 13, area: 1.15 }, { n: 3 }, { n: 4, spd: 4.2 }], evo: { dmg: 24, n: 4, area: 1.45, spd: 4.6 } },
-  bow: { icon: 'weapon_bow', evoIcon: 'weapon_bow', pair: 'swift',
+  bow: { icon: 'weapon_bow', evoIcon: 'k_bow_03', pair: 'swift',
     lv: [{ dmg: 11, cd: 1.0, n: 1, pierce: 2 }, { n: 2 }, { dmg: 16, pierce: 3 }, { cd: 0.8 }, { n: 3, dmg: 21 }], evo: { dmg: 26, cd: 0.38, n: 5, pierce: 7 } },
   bombs: { icon: 'bomb_f0', evoIcon: 'bomb_f2', pair: 'greed',
     lv: [{ dmg: 26, cd: 2.3, n: 1, area: 1 }, { n: 2 }, { dmg: 36, area: 1.15 }, { n: 3 }, { dmg: 46, cd: 1.8 }], evo: { dmg: 62, cd: 1.5, n: 4, area: 1.35 } },
   spear: { icon: 'weapon_spear', evoIcon: 'weapon_saw_sword', pair: 'charm',
     lv: [{ dmg: 16, cd: 1.15, area: 1, dirs: 1 }, { dmg: 22 }, { dirs: 2 }, { dmg: 28, area: 1.2 }, { dirs: 4 }], evo: { dmg: 46, cd: 0.8, area: 1.4, dirs: 8 } },
-  staff: { icon: 'weapon_green_magic_staff', evoIcon: 'weapon_green_magic_staff', pair: 'tome',
+  staff: { icon: 'weapon_green_magic_staff', evoIcon: 'weapon_red_magic_staff', pair: 'tome',
     lv: [{ dmg: 10, cd: 1.4, n: 1 }, { n: 2 }, { dmg: 14 }, { n: 3 }, { dmg: 18, cd: 1.1 }], evo: { dmg: 24, cd: 0.9, n: 4 } },
-  katana: { icon: 'weapon_katana', evoIcon: 'weapon_katana', pair: 'keen',
+  katana: { icon: 'weapon_katana', evoIcon: 'weapon_anime_sword', pair: 'keen',
     lv: [{ dmg: 22, cd: 1.9, area: 1 }, { dmg: 30 }, { cd: 1.6 }, { dmg: 40, area: 1.2 }, { dmg: 48, cd: 1.3 }], evo: { dmg: 60, cd: 1.1, area: 1.4 } },
-  cleaver: { icon: 'weapon_cleaver', evoIcon: 'weapon_cleaver', pair: 'pulse',
+  cleaver: { icon: 'weapon_cleaver', evoIcon: 'weapon_double_axe', pair: 'pulse',
     lv: [{ dmg: 15, cd: 1.7, n: 1, area: 1 }, { dmg: 20 }, { n: 2 }, { dmg: 25, area: 1.25 }, { n: 3, cd: 1.4 }], evo: { dmg: 36, cd: 1.2, n: 3, area: 1.6 } },
   oath: { icon: 'weapon_golden_sword', evoIcon: 'weapon_golden_sword', sig: 'knight',
     lv: [{ dmg: 15, cd: 1.15, area: 1, n: 1 }, { dmg: 20 }, { n: 2 }, { dmg: 26, area: 1.15 }, { dmg: 33, cd: 0.9 }], evo: { dmg: 44, cd: 0.8, area: 1.35, n: 6 } },
   moonbow: { icon: 'weapon_bow_2', evoIcon: 'weapon_bow_2', sig: 'elf',
     lv: [{ dmg: 10, cd: 0.95, n: 1, split: 2 }, { n: 2 }, { dmg: 14 }, { split: 3 }, { n: 3, cd: 0.78 }], evo: { dmg: 17, cd: 0.7, n: 3, split: 4 } },
-  quake: { icon: 'weapon_axe', evoIcon: 'weapon_axe', sig: 'dwarf',
+  quake: { icon: 'k_stoneblock_01', evoIcon: 'k_stoneblock_01', sig: 'dwarf',
     lv: [{ dmg: 20, cd: 1.9, len: 5, n: 1, area: 1 }, { dmg: 26 }, { len: 7 }, { dmg: 33, area: 1.2 }, { n: 2 }], evo: { dmg: 42, cd: 1.5, len: 8, n: 4, area: 1.25 } },
-  comet: { icon: 'weapon_red_magic_staff', evoIcon: 'weapon_red_magic_staff', sig: 'wizard',
+  comet: { icon: 'k_shard_01', evoIcon: 'k_shard_01', sig: 'wizard',
     lv: [{ dmg: 32, cd: 2.6, n: 1, area: 1 }, { dmg: 42 }, { n: 2 }, { dmg: 52, area: 1.2 }, { n: 3, cd: 2.1 }], evo: { dmg: 60, cd: 1.9, n: 3, area: 1.3 } },
   fang: { icon: 'weapon_machete', evoIcon: 'weapon_machete', sig: 'lizard',
     lv: [{ dmg: 26, cd: 0.7, area: 1, poison: 8, dirs: 1 }, { dmg: 34 }, { poison: 13 }, { dirs: 2 }, { dmg: 44, cd: 0.55 }], evo: { dmg: 50, cd: 0.5, poison: 18, dirs: 3 } },
   twin: { icon: 'weapon_duel_sword', evoIcon: 'weapon_duel_sword', sig: 'maren',
     lv: [{ dmg: 9, cd: 0.75, n: 2, bounce: 1 }, { dmg: 12 }, { bounce: 2 }, { n: 3 }, { dmg: 16, cd: 0.6 }], evo: { dmg: 19, cd: 0.55, n: 4, bounce: 5 } },
-  skyforge: { icon: 'weapon_big_hammer', evoIcon: 'weapon_big_hammer', sig: 'hild',
+  skyforge: { icon: 'k_ingot_01', evoIcon: 'k_ingot_01', sig: 'hild',
     lv: [{ dmg: 24, cd: 1.7, n: 1, area: 1 }, { dmg: 30 }, { n: 2 }, { area: 1.25 }, { n: 3, dmg: 38 }], evo: { dmg: 46, cd: 1.4, n: 4, area: 1.35 } },
-  gale: { icon: 'weapon_double_axe', evoIcon: 'weapon_double_axe', sig: 'faelan',
+  gale: { icon: 'k_cotton_01', evoIcon: 'k_cotton_01', sig: 'faelan',
     lv: [{ dmg: 6, cd: 3.2, n: 1, area: 1, life: 2.6 }, { dmg: 8 }, { life: 3.6 }, { n: 2 }, { dmg: 11, area: 1.3 }], evo: { dmg: 13, cd: 2.6, n: 3, area: 1.4, life: 4.5 } },
-  frost: { icon: 'weapon_anime_sword', evoIcon: 'weapon_anime_sword', sig: 'ysolde',
+  frost: { icon: 'k_gem_01', evoIcon: 'k_gem_01', sig: 'ysolde',
     lv: [{ dmg: 14, cd: 0.95, area: 1, slow: 0.3 }, { dmg: 19 }, { area: 1.2 }, { dmg: 25, slow: 0.45 }, { dmg: 32, area: 1.4 }], evo: { dmg: 40, cd: 0.8, area: 1.55, slow: 0.55 } },
-  shade: { icon: 'weapon_regular_sword', evoIcon: 'weapon_regular_sword', sig: 'sska',
+  shade: { icon: 'k_necklace_01', evoIcon: 'k_necklace_01', sig: 'sska',
     lv: [{ dmg: 22, cd: 1.0, n: 2 }, { dmg: 28 }, { n: 3 }, { dmg: 36 }, { n: 4, cd: 0.8 }], evo: { dmg: 44, cd: 0.7, n: 6 } },
   mace: { icon: 'weapon_mace', evoIcon: 'weapon_baton_with_spikes', pair: 'guard',
     lv: [{ dmg: 16, cd: 2.6, area: 1 }, { dmg: 22 }, { area: 1.2 }, { dmg: 28, cd: 2.1 }, { dmg: 34, area: 1.4 }], evo: { dmg: 46, cd: 1.7, area: 1.75 } }
 };
 const PS = {
-  vitality: { icon: 'ui_heart_full', max: 5, desc: [['hpf', 20], ['regen', 0.2]] },
-  might: { icon: 'flask_big_red', max: 5, desc: [['dmg', 10]] },
-  haste: { icon: 'flask_big_blue', max: 5, desc: [['cd', 7]] },
-  swift: { icon: 'flask_big_green', max: 5, desc: [['spd', 8]] },
-  reach: { icon: 'flask_big_yellow', max: 5, desc: [['area', 10]] },
-  greed: { icon: 'coin_anim_f0', max: 5, desc: [['magnet', 30], ['coin', 10]] },
-  charm: { icon: 'weapon_arrow', max: 2, desc: [['proj', 1]] },
-  tome: { icon: 'flask_blue', max: 5, desc: [['xp', 8]] },
-  keen: { icon: 'flask_red', max: 5, desc: [['crit', 6]] },
-  pulse: { icon: 'ui_heart_half', max: 5, desc: [['regen', 0.4]] },
-  guard: { icon: 'angel_idle_anim_f0', max: 3, desc: [['armor', 1]] }
+  vitality: { icon: 'sh_tankard', max: 5, desc: [['hpf', 20], ['regen', 0.2]] },
+  might: { icon: 'k_gloves_01', max: 5, desc: [['dmg', 10]] },
+  haste: { icon: 'k_scroll_01', max: 5, desc: [['cd', 7]] },
+  swift: { icon: 'k_boots_01', max: 5, desc: [['spd', 8]] },
+  reach: { icon: 'k_hat_01', max: 5, desc: [['area', 10]] },
+  greed: { icon: 'k_coin_03', max: 5, desc: [['magnet', 30], ['coin', 10]] },
+  charm: { icon: 'k_arrow_02', max: 2, desc: [['proj', 1]] },
+  tome: { icon: 'k_spellbook_01', max: 5, desc: [['xp', 8]] },
+  keen: { icon: 'k_skull_01', max: 5, desc: [['crit', 6]] },
+  pulse: { icon: 'k_fruit_01', max: 5, desc: [['regen', 0.4]] },
+  guard: { icon: 'k_shield_01', max: 3, desc: [['armor', 1]] }
 };
 const SHOP = {
-  might: { icon: 'flask_pink', max: 5, base: 120, desc: [['dmg', 5]] },
-  armor: { icon: 'angel_idle_anim_f0', max: 3, base: 160, desc: [['armor', 1]] },
-  maxhp: { icon: 'ui_heart_pink_full', max: 5, base: 100, desc: [['hp', 10]] },
-  recovery: { icon: 'ui_heart_pink_half', max: 3, base: 140, desc: [['regen', 0.2]] },
-  speed: { icon: 'flask_lime', max: 3, base: 120, desc: [['spd', 5]] },
-  growth: { icon: 'flask_purple', max: 5, base: 130, desc: [['xp', 6]] },
+  might: { icon: 'k_sword_01', max: 5, base: 120, desc: [['dmg', 5]] },
+  armor: { icon: 'k_helmet_01', max: 3, base: 160, desc: [['armor', 1]] },
+  maxhp: { icon: 'ui_heart_full', max: 5, base: 100, desc: [['hp', 10]] },
+  recovery: { icon: 'k_cup_02', max: 3, base: 140, desc: [['regen', 0.2]] },
+  speed: { icon: 'k_leaf_01', max: 3, base: 120, desc: [['spd', 5]] },
+  growth: { icon: 'k_book_03', max: 5, base: 130, desc: [['xp', 6]] },
   greed: { icon: 'bag_gold', max: 5, base: 110, desc: [['coin', 10], ['magnet', 20]] },
-  crit: { icon: 'flask_beige', max: 5, base: 140, desc: [['crit', 2]] },
+  crit: { icon: 'k_ring_01', max: 5, base: 140, desc: [['crit', 2]] },
   dash: { icon: 'floor_stairs', max: 3, base: 150, desc: [['dash', 10]] },
   reroll: { icon: 'lever_left', max: 3, base: 200, desc: [['reroll', 1]] },
-  revival: { icon: 'ui_heart_empty', max: 1, base: 900, desc: [['revive']] },
-  insight: { icon: 'flask_yellow', max: 1, base: 1200, desc: [['choice']] }
+  revival: { icon: 'angel_idle_anim_f0', max: 1, base: 900, desc: [['revive']] },
+  insight: { icon: 'k_key_01', max: 1, base: 1200, desc: [['choice']] }
 };
 const shopCost = (k) => Math.round(SHOP[k].base * 1.6 * (1 + shopLv(k) * 1.25) * GS('SHOPMUL', 1) / 5) * 5;
 const heroCost = h => Math.round(h.cost * GS('HEROMUL', 1) / 10) * 10;
 const BLESS = {
   wrath: { icon: 'wall_banner_red', desc: [['dmg', 20]], f: b => { b.might += 0.2; } },
-  wind: { icon: 'wall_banner_blue', desc: [['cd', 12]], f: b => { b.cd += 0.12; } },
-  life: { icon: 'wall_banner_green', desc: [['hpf', 20]], extra: 'blLife', heal: 1, f: b => { b.hp += 20; } },
-  gold: { icon: 'wall_banner_yellow', desc: [['coin', 40]], f: b => { b.greed += 0.4; } },
-  pact: { icon: 'skull', desc: [['dmg', 35]], extra: 'blPact', f: b => { b.might += 0.35; b.hp -= 25; } }
+  wind: { icon: 'k_staff_03', desc: [['cd', 12]], f: b => { b.cd += 0.12; } },
+  life: { icon: 'k_pearl_01', desc: [['hpf', 20]], extra: 'blLife', heal: 1, f: b => { b.hp += 20; } },
+  gold: { icon: 'sh_chest', desc: [['coin', 40]], f: b => { b.greed += 0.4; } },
+  pact: { icon: 'sh_ptri', desc: [['dmg', 35]], extra: 'blPact', f: b => { b.might += 0.35; b.hp -= 25; } }
 };
-const POT = { pfreeze: 'flask_big_purple', phaste: 'flask_big_lime', pmagnet: 'flask_big_pink' };
+const POT = { pfreeze: 'k_potion_01', phaste: 'sh_ptall', pmagnet: 'flask_big_pink' };
 
 const EN = {
   tiny_zombie: { hp: 5, spd: 30, dmg: 3, xp: 1 }, goblin: { hp: 9, spd: 38, dmg: 4, xp: 1 }, imp: { hp: 7, spd: 50, dmg: 3, xp: 1 },
@@ -717,7 +717,7 @@ const tierMul = h => 1 + 0.13 * (HTIER[h] || 0);
 // each class has its own arsenal and its own evolution partners
 const HKIT = { // signature + 3 class weapons; no two heroes share more than one class weapon
   knight: { oath: 'guard', sword: 'might', mace: 'vitality', spear: 'reach' },
-  elf: { moonbow: 'swift', bow: 'keen', knives: 'haste', staff: 'charm' },
+  elf: { moonbow: 'swift', sword: 'keen', knives: 'haste', staff: 'charm' },
   dwarf: { quake: 'guard', axe: 'might', hammers: 'charm', bombs: 'vitality' },
   wizard: { comet: 'tome', staff: 'reach', bombs: 'greed', cleaver: 'haste' },
   lizard: { fang: 'keen', spear: 'haste', bow: 'swift', katana: 'might' },
@@ -1079,10 +1079,10 @@ function mTrack(run) {
 const mText = m => T('m.' + m.t, m.n);
 // relics: permanent run bonuses, found in the treasure draw
 const RELICS = {
-  heart: { icon: 'ui_heart_full', st: 'maxhp', per: 0.04 }, fury: { icon: 'flask_big_red', st: 'might', per: 0.03 },
-  sand: { icon: 'flask_big_blue', st: 'cd', per: -0.02 }, wind: { icon: 'flask_big_green', st: 'spd', per: 0.03 },
-  sage: { icon: 'flask_big_yellow', st: 'area', per: 0.03 }, greed: { icon: 'coin_anim_f0', st: 'greed', per: 0.05 },
-  reaper: { icon: 'flask_red', st: 'crit', add: 0.015 }, ward: { icon: 'angel_idle_anim_f0', st: 'armor', add: 0.25 }
+  heart: { icon: 'sh_jar', st: 'maxhp', per: 0.04 }, fury: { icon: 'k_helmet_02', st: 'might', per: 0.03 },
+  sand: { icon: 'k_candle_01', st: 'cd', per: -0.02 }, wind: { icon: 'k_flower_01', st: 'spd', per: 0.03 },
+  sage: { icon: 'sh_teapot', st: 'area', per: 0.03 }, greed: { icon: 'k_coin_05', st: 'greed', per: 0.05 },
+  reaper: { icon: 'k_bone01', st: 'crit', add: 0.015 }, ward: { icon: 'k_armor_01', st: 'armor', add: 0.25 }
 };
 const RLV = [0, 1, 3, 6, 10, 15]; // copies needed for Lv1..5
 const relLv = id => { const n = ((SV.rel || {})[id]) || 0; let l = 0; while (l < 5 && n >= RLV[l + 1]) l++; return l; };
@@ -1104,7 +1104,7 @@ function showDraw(out) {
   const box = $('gOut'); box.innerHTML = ''; $('gMsg').textContent = '';
   out.forEach((o, i) => {
     const d = document.createElement('div'); d.className = 'slot gs ' + o.k + (o.nw || o.k === 'hero' ? ' rare' : ''); d.style.animationDelay = (i * 0.07) + 's';
-    const ic = o.k === 'hero' ? frames(HEROES[o.id].spr, 'idle')[0] : o.k === 'coin' ? 'chest_full_open_anim_f2' : RELICS[o.id].icon;
+    const ic = o.k === 'hero' ? frames(HEROES[o.id].spr, 'idle')[0] : o.k === 'coin' ? 'coin_anim_f0' : RELICS[o.id].icon;
     d.appendChild(iconCanvas(ic, U * 10));
     const cp = document.createElement('i'); cp.className = 'cap'; cp.textContent = o.k === 'hero' ? hn(o.id) : o.k === 'coin' ? T('coinsN', o.v) : T('rel.' + o.id);
     d.appendChild(cp);
@@ -1186,17 +1186,17 @@ const ESC = ['#da4e38', '#9b5ba5'];
 const EK = [null, null,
   { spr: 'skull', align: 1, home: 0.9 },                 // 2 necromancer: drifting skull that bends toward you
   { spr: 'flask_green', spin: 9, lob: 1, pool: 1 },      // 3 orc shaman: poison flask, leaves a puddle where it lands
-  { spr: 'weapon_throwing_axe', spin: 15 },              // 4 orc warchief
-  { spr: 'weapon_big_hammer', spin: 9 },                 // 5 ogre
-  { spr: 'weapon_baton_with_spikes', spin: 11 },         // 6 rotting giant: bone clubs
+  { spr: 'weapon_axe', spin: 15 },              // 4 orc warchief
+  { spr: 'k_plank_01', spin: 9 },                 // 5 ogre
+  { spr: 'sh_pot', spin: 11 },         // 6 rotting giant: bone clubs
   { spr: 'flask_big_yellow', spin: 7, lob: 1 },          // 7 elder shaman
   { spr: 'flask_big_blue', spin: 6, lob: 1, chill: 1 },  // 8 lich: frost flask, slows on hit
   { spr: 'bomb_f0', spin: 8 },                           // 9 (unused)
-  { spr: 'flask_purple', spin: 8, lob: 1 },              // 10 gnoll shaman
-  { spr: 'weapon_mace', spin: 12 },                      // 11 troll
-  { spr: 'flask_beige', spin: 7, lob: 1, pool: 1 },      // 12 mushroom king: spore puddles
-  { spr: 'flask_big_purple', spin: 6, lob: 1 },          // 13 old archmage
-  { spr: 'flask_big_lime', spin: 6, lob: 1, pool: 1 }];  // 14 withered treant: sap
+  { spr: 'sh_bamboo', spin: 8, lob: 1 },              // 10 gnoll shaman
+  { spr: 'k_fish_01', spin: 12 },                      // 11 troll
+  { spr: 'k_cookie_01', spin: 7, lob: 1, pool: 1 },      // 12 mushroom king: spore puddles
+  { spr: 'sh_pwide', spin: 6, lob: 1 },          // 13 old archmage
+  { spr: 'k_wood_01', spin: 6, lob: 1, pool: 1 }];  // 14 withered treant: sap
 const BKIND = { ogre: 5, big_zombie: 6, big_demon: 0, warchief: 4, shaman: 13, lich: 14, troll: 11, mushking: 12 };
 function eShot(x, y, a, spd, dmg, c, life) { if (G.eshots.length > 280) return; G.eshots.push({ x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, dmg, c: c || 0, t: 0, life: life || 6 }); }
 function bossAct(e, ux, uy) {
@@ -1391,7 +1391,7 @@ function fireWeapons(dt) {
         for (let i = 0; i < n; i++) {
           const tg = nearest(p.x, p.y, 200, used); if (tg) used.add(tg);
           const a = tg ? Math.atan2(tg.y - tg.h / 2 - (p.y - 10), tg.x - p.x) : (p.face > 0 ? 0 : Math.PI) + rnd(-0.5, 0.5) + i * 0.7;
-          G.shots.push({ w, kind: 'boom', spr: 'weapon_cleaver', x: p.x, y: p.y - 10, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, rot: a, vr: 16, life: 3, t: -i * 0.12, dmg: s.dmg, pierce: 999, r: 8 * s.area * ST.area, hit: new Set(), back: false });
+          G.shots.push({ w, kind: 'boom', spr: w.evo ? 'weapon_double_axe' : 'weapon_cleaver', x: p.x, y: p.y - 10, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, rot: a, vr: 16, life: 3, t: -i * 0.12, dmg: s.dmg, pierce: 999, r: 8 * s.area * ST.area, hit: new Set(), back: false });
         }
         sfx('thunk', 0.45, 0.2); break;
       }
@@ -1651,7 +1651,7 @@ function applyChoice(c) {
 }
 function choiceInfo(c) {
   const Lx = L();
-  if (c.kind === 'heal') return { icon: 'flask_green', t: Lx.heal, d: Lx.healD, tag: '' };
+  if (c.kind === 'heal') return { icon: 'k_potion_03', t: Lx.heal, d: Lx.healD, tag: '' };
   if (c.kind === 'gold') return { icon: 'crate', t: Lx.goldBag, d: Lx.goldBagD, tag: '' };
   if (c.kind === 'b') { const b = BLESS[c.id]; return { icon: b.icon, t: T('bl.' + c.id), d: statText(b.desc) + (b.extra ? str('gap') + T(b.extra) : ''), tag: '' }; }
   if (c.kind === 'evo') { const d = nm(WP[c.id]); return { icon: WP[c.id].evoIcon, t: d[3], d: d[4], tag: Lx.evoTag, cls: 'evo' }; }
@@ -2072,7 +2072,7 @@ function render(attract) {
     else if (POT[k.k]) spr(POT[k.k], X, Y - Math.round(Math.abs(Math.sin(tnow * 3 + k.x)) * 2));
     else if (k.k === 'chest' || k.k === 'mimic') { shadow(X, Y, 14); spr('chest_full_open_anim_f0', X, Y - Math.round(Math.abs(Math.sin(tnow * 4)) * 2)); if ((tnow * 4 | 0) % 2) vctx.fillStyle = '#facb3e', vctx.fillRect(X + 6, Y - 18, 1, 1); }
   }
-  if (!attract) for (const r of G.risers) if (inView(r.x, r.y)) spr('skull', r.x - cx, r.y - cy, { alpha: ((tnow * 10 | 0) % 2) ? 0.9 : 0.45 });
+  if (!attract) for (const r of G.risers) if (inView(r.x, r.y)) spr('hole', r.x - cx, r.y - cy, { alpha: ((tnow * 10 | 0) % 2) ? 0.9 : 0.45 });
   // depth-sorted actors
   const list = [];
   for (const o of props) if (!o.decal && inView(o.x, o.y, o.wall ? 60 + o.w * 8 : 60)) list.push({ y: o.y, d: o.wall ? () => drawWallBlock(o, cx, cy) : () => spr(o.name, o.x - cx, o.y - cy) });
@@ -2119,7 +2119,7 @@ function render(attract) {
     for (const b of G.blasts) if (b.t < 0 && b.marker) { // incoming comet / hammer
       const k = clamp(1 + b.t / 0.6, 0, 1), X = b.x - cx, Y = b.y - cy;
       pixelRing(X, Y, b.r * (1.15 - k * 0.15), (performance.now() / 90 | 0) % 2 ? '#da4e38' : '#facb3e', 1);
-      if (b.marker === 'forge') sprRot('weapon_big_hammer', X, Y - (1 - k) * 90, Math.PI / 2, -AT.weapon_big_hammer[3] / 2);
+      if (b.marker === 'forge') sprRot('k_ingot_01', X, Y - (1 - k) * 90, -Math.PI / 2, -AT.k_ingot_01[3] / 2);
       else { const Z = (1 - k) * 110; for (let j = 0; j < 6; j++) { vctx.fillStyle = j < 2 ? '#fdf7ed' : j < 4 ? '#facb3e' : '#da4e38'; vctx.fillRect(Math.round(X + Z * 0.5 - j * 2), Math.round(Y - Z - j * 3), 4 - (j >> 1), 4 - (j >> 1)); } }
     }
     for (const z of G.zones) { vctx.globalAlpha = 0.25 * clamp(1 - z.t / z.life + 0.3, 0, 1); vctx.fillStyle = '#ee8e2e'; for (let k = 0; k < 10; k++) { const a = k / 10 * TAU + z.t; vctx.fillRect(Math.round(z.x - cx + Math.cos(a) * z.r * 0.8), Math.round(z.y - cy + Math.sin(a) * z.r * 0.5), 2, 1); } vctx.globalAlpha = 1; }
@@ -2245,8 +2245,8 @@ function drawWeaponsFx(cx, cy) {
       }
     }
   }
-  if (G.guest) { for (const o of G.orbsNet || []) sprRot('weapon_hammer', o[0] - cx, o[1] - cy, o[2] + Math.PI / 2, -AT.weapon_hammer[3] / 2); }
-  else for (const pl of G.players) for (const w of pl.weapons) if (w.orbs) for (const o of w.orbs) sprRot('weapon_hammer', o.x - cx, o.y - cy, o.a + Math.PI / 2, -AT['weapon_hammer'][3] / 2);
+  if (G.guest) { for (const o of G.orbsNet || []) sprRot(o[3] ? 'weapon_big_hammer' : 'weapon_hammer', o[0] - cx, o[1] - cy, o[2] + Math.PI / 2, -AT[o[3] ? 'weapon_big_hammer' : 'weapon_hammer'][3] / 2); }
+  else for (const pl of G.players) for (const w of pl.weapons) if (w.orbs) for (const o of w.orbs) sprRot(w.evo ? 'weapon_big_hammer' : 'weapon_hammer', o.x - cx, o.y - cy, o.a + Math.PI / 2, -AT['weapon_hammer'][3] / 2);
 }
 function drawLight(cx, cy, attract) {
   if (!LIGHT.canvas || LIGHT.canvas.width !== VW || LIGHT.canvas.height !== VH) { LIGHT.canvas = document.createElement('canvas'); LIGHT.canvas.width = VW; LIGHT.canvas.height = VH; LIGHT.ctx = LIGHT.canvas.getContext('2d'); }

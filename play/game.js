@@ -83,37 +83,37 @@ const WP = {
     lv: [{ dmg: 7, cd: 0.6, n: 1, pierce: 1 }, { n: 2 }, { dmg: 10 }, { n: 3, pierce: 2 }, { cd: 0.42 }], evo: { dmg: 15, cd: 0.4, n: 8, pierce: 3 } },
   axe: { icon: 'weapon_throwing_axe', evoIcon: 'weapon_waraxe', pair: 'reach',
     lv: [{ dmg: 18, cd: 1.6, n: 1, area: 1 }, { n: 2 }, { dmg: 26 }, { area: 1.2 }, { n: 3, dmg: 32 }], evo: { dmg: 48, cd: 1.1, n: 5, area: 1.5 } },
-  hammers: { icon: 'weapon_hammer', evoIcon: 'weapon_big_hammer', pair: 'vitality',
+  hammers: { icon: 'weapon_hammer', evoIcon: 'weapon_hammer', pair: 'vitality',
     lv: [{ dmg: 9, n: 1, area: 1, spd: 3.2 }, { n: 2 }, { dmg: 13, area: 1.15 }, { n: 3 }, { n: 4, spd: 4.2 }], evo: { dmg: 24, n: 4, area: 1.45, spd: 4.6 } },
-  bow: { icon: 'weapon_bow', evoIcon: 'weapon_bow_2', pair: 'swift',
+  bow: { icon: 'weapon_bow', evoIcon: 'weapon_bow', pair: 'swift',
     lv: [{ dmg: 11, cd: 1.0, n: 1, pierce: 2 }, { n: 2 }, { dmg: 16, pierce: 3 }, { cd: 0.8 }, { n: 3, dmg: 21 }], evo: { dmg: 26, cd: 0.38, n: 5, pierce: 7 } },
   bombs: { icon: 'bomb_f0', evoIcon: 'bomb_f2', pair: 'greed',
     lv: [{ dmg: 26, cd: 2.3, n: 1, area: 1 }, { n: 2 }, { dmg: 36, area: 1.15 }, { n: 3 }, { dmg: 46, cd: 1.8 }], evo: { dmg: 62, cd: 1.5, n: 4, area: 1.35 } },
   spear: { icon: 'weapon_spear', evoIcon: 'weapon_saw_sword', pair: 'charm',
     lv: [{ dmg: 16, cd: 1.15, area: 1, dirs: 1 }, { dmg: 22 }, { dirs: 2 }, { dmg: 28, area: 1.2 }, { dirs: 4 }], evo: { dmg: 46, cd: 0.8, area: 1.4, dirs: 8 } },
-  staff: { icon: 'weapon_green_magic_staff', evoIcon: 'weapon_red_magic_staff', pair: 'tome',
+  staff: { icon: 'weapon_green_magic_staff', evoIcon: 'weapon_green_magic_staff', pair: 'tome',
     lv: [{ dmg: 10, cd: 1.4, n: 1 }, { n: 2 }, { dmg: 14 }, { n: 3 }, { dmg: 18, cd: 1.1 }], evo: { dmg: 24, cd: 0.9, n: 4 } },
-  katana: { icon: 'weapon_katana', evoIcon: 'weapon_anime_sword', pair: 'keen',
+  katana: { icon: 'weapon_katana', evoIcon: 'weapon_katana', pair: 'keen',
     lv: [{ dmg: 22, cd: 1.9, area: 1 }, { dmg: 30 }, { cd: 1.6 }, { dmg: 40, area: 1.2 }, { dmg: 48, cd: 1.3 }], evo: { dmg: 60, cd: 1.1, area: 1.4 } },
-  cleaver: { icon: 'weapon_cleaver', evoIcon: 'weapon_double_axe', pair: 'pulse',
+  cleaver: { icon: 'weapon_cleaver', evoIcon: 'weapon_cleaver', pair: 'pulse',
     lv: [{ dmg: 15, cd: 1.7, n: 1, area: 1 }, { dmg: 20 }, { n: 2 }, { dmg: 25, area: 1.25 }, { n: 3, cd: 1.4 }], evo: { dmg: 36, cd: 1.2, n: 3, area: 1.6 } },
   oath: { icon: 'weapon_golden_sword', evoIcon: 'weapon_golden_sword', sig: 'knight',
     lv: [{ dmg: 15, cd: 1.15, area: 1, n: 1 }, { dmg: 20 }, { n: 2 }, { dmg: 26, area: 1.15 }, { dmg: 33, cd: 0.9 }], evo: { dmg: 44, cd: 0.8, area: 1.35, n: 6 } },
-  moonbow: { icon: 'elf_f_idle_anim_f0', evoIcon: 'elf_f_idle_anim_f0', sig: 'elf',
+  moonbow: { icon: 'weapon_bow_2', evoIcon: 'weapon_bow_2', sig: 'elf',
     lv: [{ dmg: 10, cd: 0.95, n: 1, split: 2 }, { n: 2 }, { dmg: 14 }, { split: 3 }, { n: 3, cd: 0.78 }], evo: { dmg: 17, cd: 0.7, n: 3, split: 4 } },
   quake: { icon: 'weapon_axe', evoIcon: 'weapon_axe', sig: 'dwarf',
     lv: [{ dmg: 20, cd: 1.9, len: 5, n: 1, area: 1 }, { dmg: 26 }, { len: 7 }, { dmg: 33, area: 1.2 }, { n: 2 }], evo: { dmg: 42, cd: 1.5, len: 8, n: 4, area: 1.25 } },
-  comet: { icon: 'wizzard_m_idle_anim_f0', evoIcon: 'wizzard_m_idle_anim_f0', sig: 'wizard',
+  comet: { icon: 'weapon_red_magic_staff', evoIcon: 'weapon_red_magic_staff', sig: 'wizard',
     lv: [{ dmg: 32, cd: 2.6, n: 1, area: 1 }, { dmg: 42 }, { n: 2 }, { dmg: 52, area: 1.2 }, { n: 3, cd: 2.1 }], evo: { dmg: 60, cd: 1.9, n: 3, area: 1.3 } },
   fang: { icon: 'weapon_machete', evoIcon: 'weapon_machete', sig: 'lizard',
     lv: [{ dmg: 26, cd: 0.7, area: 1, poison: 8, dirs: 1 }, { dmg: 34 }, { poison: 13 }, { dirs: 2 }, { dmg: 44, cd: 0.55 }], evo: { dmg: 50, cd: 0.5, poison: 18, dirs: 3 } },
   twin: { icon: 'weapon_duel_sword', evoIcon: 'weapon_duel_sword', sig: 'maren',
     lv: [{ dmg: 9, cd: 0.75, n: 2, bounce: 1 }, { dmg: 12 }, { bounce: 2 }, { n: 3 }, { dmg: 16, cd: 0.6 }], evo: { dmg: 19, cd: 0.55, n: 4, bounce: 5 } },
-  skyforge: { icon: 'eknight_idle_anim_f0', evoIcon: 'eknight_idle_anim_f0', sig: 'hild',
+  skyforge: { icon: 'weapon_big_hammer', evoIcon: 'weapon_big_hammer', sig: 'hild',
     lv: [{ dmg: 24, cd: 1.7, n: 1, area: 1 }, { dmg: 30 }, { n: 2 }, { area: 1.25 }, { n: 3, dmg: 38 }], evo: { dmg: 46, cd: 1.4, n: 4, area: 1.35 } },
-  gale: { icon: 'ranger_idle_anim_f0', evoIcon: 'ranger_idle_anim_f0', sig: 'faelan',
+  gale: { icon: 'weapon_double_axe', evoIcon: 'weapon_double_axe', sig: 'faelan',
     lv: [{ dmg: 6, cd: 3.2, n: 1, area: 1, life: 2.6 }, { dmg: 8 }, { life: 3.6 }, { n: 2 }, { dmg: 11, area: 1.3 }], evo: { dmg: 13, cd: 2.6, n: 3, area: 1.4, life: 4.5 } },
-  frost: { icon: 'elfpr_idle_anim_f0', evoIcon: 'elfpr_idle_anim_f0', sig: 'ysolde',
+  frost: { icon: 'weapon_anime_sword', evoIcon: 'weapon_anime_sword', sig: 'ysolde',
     lv: [{ dmg: 14, cd: 0.95, area: 1, slow: 0.3 }, { dmg: 19 }, { area: 1.2 }, { dmg: 25, slow: 0.45 }, { dmg: 32, area: 1.4 }], evo: { dmg: 40, cd: 0.8, area: 1.55, slow: 0.55 } },
   shade: { icon: 'weapon_regular_sword', evoIcon: 'weapon_regular_sword', sig: 'sska',
     lv: [{ dmg: 22, cd: 1.0, n: 2 }, { dmg: 28 }, { n: 3 }, { dmg: 36 }, { n: 4, cd: 0.8 }], evo: { dmg: 44, cd: 0.7, n: 6 } },
@@ -1133,7 +1133,7 @@ function buildGacha() {
 // collection
 const colSV = () => SV.col || (SV.col = { e: {}, w: {}, c: {} });
 const COLE = Object.keys(EN).filter(k => k !== 'crate');
-const COLW = []; for (const id in WP) { COLW.push(id); if (WP[id].evo) COLW.push('evo_' + id); }
+const COLW = []; for (const id in WP) { COLW.push(id); if (WP[id].evo && WP[id].evoIcon && WP[id].evoIcon !== WP[id].icon) COLW.push('evo_' + id); }
 const colSeen = (tab, id) => tab === 'w' ? !!colSV().w[id] : (colSV().e[id] || 0) > 0;
 const colRew = (tab, id) => tab === 'w' ? (id.startsWith('evo_') ? 30 : 10) : (EN[id].boss ? 40 : 8);
 const colNew = (tab, id) => colSeen(tab, id) && !colSV().c[tab + ':' + id];
@@ -1391,7 +1391,7 @@ function fireWeapons(dt) {
         for (let i = 0; i < n; i++) {
           const tg = nearest(p.x, p.y, 200, used); if (tg) used.add(tg);
           const a = tg ? Math.atan2(tg.y - tg.h / 2 - (p.y - 10), tg.x - p.x) : (p.face > 0 ? 0 : Math.PI) + rnd(-0.5, 0.5) + i * 0.7;
-          G.shots.push({ w, kind: 'boom', spr: w.evo ? 'weapon_double_axe' : 'weapon_cleaver', x: p.x, y: p.y - 10, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, rot: a, vr: 16, life: 3, t: -i * 0.12, dmg: s.dmg, pierce: 999, r: 8 * s.area * ST.area, hit: new Set(), back: false });
+          G.shots.push({ w, kind: 'boom', spr: 'weapon_cleaver', x: p.x, y: p.y - 10, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, rot: a, vr: 16, life: 3, t: -i * 0.12, dmg: s.dmg, pierce: 999, r: 8 * s.area * ST.area, hit: new Set(), back: false });
         }
         sfx('thunk', 0.45, 0.2); break;
       }
@@ -2245,8 +2245,8 @@ function drawWeaponsFx(cx, cy) {
       }
     }
   }
-  if (G.guest) { for (const o of G.orbsNet || []) sprRot(o[3] ? 'weapon_big_hammer' : 'weapon_hammer', o[0] - cx, o[1] - cy, o[2] + Math.PI / 2, -AT[o[3] ? 'weapon_big_hammer' : 'weapon_hammer'][3] / 2); }
-  else for (const pl of G.players) for (const w of pl.weapons) if (w.orbs) for (const o of w.orbs) sprRot(w.evo ? 'weapon_big_hammer' : 'weapon_hammer', o.x - cx, o.y - cy, o.a + Math.PI / 2, -AT[w.evo ? 'weapon_big_hammer' : 'weapon_hammer'][3] / 2);
+  if (G.guest) { for (const o of G.orbsNet || []) sprRot('weapon_hammer', o[0] - cx, o[1] - cy, o[2] + Math.PI / 2, -AT.weapon_hammer[3] / 2); }
+  else for (const pl of G.players) for (const w of pl.weapons) if (w.orbs) for (const o of w.orbs) sprRot('weapon_hammer', o.x - cx, o.y - cy, o.a + Math.PI / 2, -AT['weapon_hammer'][3] / 2);
 }
 function drawLight(cx, cy, attract) {
   if (!LIGHT.canvas || LIGHT.canvas.width !== VW || LIGHT.canvas.height !== VH) { LIGHT.canvas = document.createElement('canvas'); LIGHT.canvas.width = VW; LIGHT.canvas.height = VH; LIGHT.ctx = LIGHT.canvas.getContext('2d'); }

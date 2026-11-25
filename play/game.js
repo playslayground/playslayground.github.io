@@ -69,11 +69,11 @@ const HEROES = {
   dwarf: { name: 'Brom', spr: 'dwarf_m', weapon: 'quake', cost: 1800, mod: { armor: 1 }, desc: [['armor', 1]] },
   wizard: { name: 'Orrin', spr: 'wizzard_m', weapon: 'comet', cost: 3200, mod: { area: 1.1 }, desc: [['area', 10]] },
   lizard: { name: 'Kesh', spr: 'lizard_m', weapon: 'fang', cost: 5000, mod: { might: 1.1 }, desc: [['dmg', 10]] },
-  maren: { name: 'Maren', spr: 'knight_f', weapon: 'twin', cost: 7200, mod: { cd: 0.92 }, desc: [['cd', 8]] },
-  hild: { name: 'Hild', spr: 'dwarf_f', weapon: 'skyforge', cost: 9800, mod: { regen: 0.3 }, desc: [['regen', 0.3]] },
-  faelan: { name: 'Faelan', spr: 'elf_m', weapon: 'gale', cost: 12800, mod: { dash: 0.7 }, desc: [['dash', 30]] },
-  ysolde: { name: 'Ysolde', spr: 'wizzard_f', weapon: 'frost', cost: 16000, mod: { growth: 1.15 }, desc: [['xp', 15]] },
-  sska: { name: 'Sska', spr: 'lizard_f', weapon: 'shade', cost: 20000, mod: { crit: 0.1 }, desc: [['crit', 10]] }
+  maren: { name: 'Maren', spr: 'bandit', weapon: 'twin', cost: 7200, mod: { cd: 0.92 }, desc: [['cd', 8]] },
+  hild: { name: 'Hild', spr: 'eknight', weapon: 'skyforge', cost: 9800, mod: { regen: 0.3 }, desc: [['regen', 0.3]] },
+  faelan: { name: 'Faelan', spr: 'ranger', weapon: 'gale', cost: 12800, mod: { dash: 0.7 }, desc: [['dash', 30]] },
+  ysolde: { name: 'Ysolde', spr: 'elfpr', weapon: 'frost', cost: 16000, mod: { growth: 1.15 }, desc: [['xp', 15]] },
+  sska: { name: 'Aurel', spr: 'fguard', weapon: 'shade', cost: 20000, mod: { crit: 0.1 }, desc: [['crit', 10]] }
 };
 
 const WP = {
@@ -109,11 +109,11 @@ const WP = {
     lv: [{ dmg: 26, cd: 0.7, area: 1, poison: 8, dirs: 1 }, { dmg: 34 }, { poison: 13 }, { dirs: 2 }, { dmg: 44, cd: 0.55 }], evo: { dmg: 50, cd: 0.5, poison: 18, dirs: 3 } },
   twin: { icon: 'weapon_duel_sword', evoIcon: 'weapon_duel_sword', sig: 'maren',
     lv: [{ dmg: 9, cd: 0.75, n: 2, bounce: 1 }, { dmg: 12 }, { bounce: 2 }, { n: 3 }, { dmg: 16, cd: 0.6 }], evo: { dmg: 19, cd: 0.55, n: 4, bounce: 5 } },
-  skyforge: { icon: 'dwarf_f_idle_anim_f0', evoIcon: 'dwarf_f_idle_anim_f0', sig: 'hild',
+  skyforge: { icon: 'eknight_idle_anim_f0', evoIcon: 'eknight_idle_anim_f0', sig: 'hild',
     lv: [{ dmg: 24, cd: 1.7, n: 1, area: 1 }, { dmg: 30 }, { n: 2 }, { area: 1.25 }, { n: 3, dmg: 38 }], evo: { dmg: 46, cd: 1.4, n: 4, area: 1.35 } },
-  gale: { icon: 'elf_m_idle_anim_f0', evoIcon: 'elf_m_idle_anim_f0', sig: 'faelan',
+  gale: { icon: 'ranger_idle_anim_f0', evoIcon: 'ranger_idle_anim_f0', sig: 'faelan',
     lv: [{ dmg: 6, cd: 3.2, n: 1, area: 1, life: 2.6 }, { dmg: 8 }, { life: 3.6 }, { n: 2 }, { dmg: 11, area: 1.3 }], evo: { dmg: 13, cd: 2.6, n: 3, area: 1.4, life: 4.5 } },
-  frost: { icon: 'wizzard_f_idle_anim_f0', evoIcon: 'wizzard_f_idle_anim_f0', sig: 'ysolde',
+  frost: { icon: 'elfpr_idle_anim_f0', evoIcon: 'elfpr_idle_anim_f0', sig: 'ysolde',
     lv: [{ dmg: 14, cd: 0.95, area: 1, slow: 0.3 }, { dmg: 19 }, { area: 1.2 }, { dmg: 25, slow: 0.45 }, { dmg: 32, area: 1.4 }], evo: { dmg: 40, cd: 0.8, area: 1.55, slow: 0.55 } },
   shade: { icon: 'weapon_regular_sword', evoIcon: 'weapon_regular_sword', sig: 'sska',
     lv: [{ dmg: 22, cd: 1.0, n: 2 }, { dmg: 28 }, { n: 3 }, { dmg: 36 }, { n: 4, cd: 0.8 }], evo: { dmg: 44, cd: 0.7, n: 6 } },
@@ -134,14 +134,14 @@ const PS = {
   guard: { icon: 'angel_idle_anim_f0', max: 3, desc: [['armor', 1]] }
 };
 const SHOP = {
-  might: { icon: 'flask_big_red', max: 5, base: 120, desc: [['dmg', 5]] },
+  might: { icon: 'flask_pink', max: 5, base: 120, desc: [['dmg', 5]] },
   armor: { icon: 'angel_idle_anim_f0', max: 3, base: 160, desc: [['armor', 1]] },
-  maxhp: { icon: 'ui_heart_full', max: 5, base: 100, desc: [['hp', 10]] },
-  recovery: { icon: 'ui_heart_half', max: 3, base: 140, desc: [['regen', 0.2]] },
-  speed: { icon: 'flask_big_green', max: 3, base: 120, desc: [['spd', 5]] },
-  growth: { icon: 'flask_blue', max: 5, base: 130, desc: [['xp', 6]] },
-  greed: { icon: 'coin_anim_f0', max: 5, base: 110, desc: [['coin', 10], ['magnet', 20]] },
-  crit: { icon: 'flask_red', max: 5, base: 140, desc: [['crit', 2]] },
+  maxhp: { icon: 'ui_heart_pink_full', max: 5, base: 100, desc: [['hp', 10]] },
+  recovery: { icon: 'ui_heart_pink_half', max: 3, base: 140, desc: [['regen', 0.2]] },
+  speed: { icon: 'flask_lime', max: 3, base: 120, desc: [['spd', 5]] },
+  growth: { icon: 'flask_purple', max: 5, base: 130, desc: [['xp', 6]] },
+  greed: { icon: 'bag_gold', max: 5, base: 110, desc: [['coin', 10], ['magnet', 20]] },
+  crit: { icon: 'flask_beige', max: 5, base: 140, desc: [['crit', 2]] },
   dash: { icon: 'floor_stairs', max: 3, base: 150, desc: [['dash', 10]] },
   reroll: { icon: 'lever_left', max: 3, base: 200, desc: [['reroll', 1]] },
   revival: { icon: 'ui_heart_empty', max: 1, base: 900, desc: [['revive']] },
@@ -156,7 +156,7 @@ const BLESS = {
   gold: { icon: 'wall_banner_yellow', desc: [['coin', 40]], f: b => { b.greed += 0.4; } },
   pact: { icon: 'skull', desc: [['dmg', 35]], extra: 'blPact', f: b => { b.might += 0.35; b.hp -= 25; } }
 };
-const POT = { pfreeze: 'flask_big_blue', phaste: 'flask_big_green', pmagnet: 'flask_big_yellow' };
+const POT = { pfreeze: 'flask_big_purple', phaste: 'flask_big_lime', pmagnet: 'flask_big_pink' };
 
 const EN = {
   tiny_zombie: { hp: 5, spd: 30, dmg: 3, xp: 1 }, goblin: { hp: 9, spd: 38, dmg: 4, xp: 1 }, imp: { hp: 7, spd: 50, dmg: 3, xp: 1 },
@@ -169,49 +169,58 @@ const EN = {
   ogre: { hp: 1500, spd: 30, dmg: 22, xp: 50, boss: 1 },
   big_zombie: { hp: 3200, spd: 32, dmg: 26, xp: 90, boss: 1, summon: 'tiny_zombie' },
   big_demon: { hp: 7500, spd: 36, dmg: 32, xp: 200, boss: 1, summon: 'imp' },
-  warchief: { hp: 2400, spd: 36, dmg: 24, xp: 70, boss: 1, spr: 'orc_warrior', bsc: 2, summon: 'masked_orc' },
-  shaman: { hp: 3000, spd: 30, dmg: 22, xp: 90, boss: 1, spr: 'orc_shaman', bsc: 2, summon: 'goblin' },
-  lich: { hp: 4200, spd: 30, dmg: 26, xp: 120, boss: 1, spr: 'necromancer', bsc: 2, summon: 'skelet' },
-  pumpking: { hp: 3600, spd: 38, dmg: 28, xp: 100, boss: 1, spr: 'pumpkin_dude', bsc: 2, summon: 'imp' }
+  warchief: { hp: 2400, spd: 36, dmg: 24, xp: 70, boss: 1, spr: 'govr', summon: 'gscout' },
+  shaman: { hp: 3000, spd: 30, dmg: 22, xp: 90, boss: 1, spr: 'wizard', bsc: 1.4, summon: 'gbrute' },
+  lich: { hp: 4200, spd: 30, dmg: 26, xp: 120, boss: 1, spr: 'ent', bsc: 1.2, summon: 'skelet' },
+  pumpking: { hp: 3600, spd: 38, dmg: 28, xp: 100, boss: 1, spr: 'bear', summon: 'imp' },
+  troll: { hp: 3000, spd: 32, dmg: 24, xp: 80, boss: 1, spr: 'troll', summon: 'mushs' },
+  mushking: { hp: 3400, spd: 26, dmg: 22, xp: 90, boss: 1, spr: 'mushl', bsc: 1.3, summon: 'mushs' },
+  golem: { hp: 4600, spd: 26, dmg: 30, xp: 120, boss: 1, spr: 'golem', summon: 'skelet' }
 };
-EN.tgoblin = { hp: 70, spd: 60, dmg: 0, xp: 0, spr: 'goblin', flee: 1 };
-EN.orc_shaman.shoot = 1; EN.necromancer.shoot = 1; EN.wogol.leap = 1; EN.chort.leap = 1; EN.imp.zig = 1; EN.goblin.zig = 1;
+EN.tgoblin = { hp: 70, spd: 60, dmg: 0, xp: 0, spr: 'fairy', flee: 1 };
+// new regulars from the Forest pack
+EN.mushs = { hp: 10, spd: 26, dmg: 4, xp: 1, spr: 'mushs' }; EN.gscout = { hp: 30, spd: 42, dmg: 6, xp: 2, spr: 'gscout' };
+EN.gbrute = { hp: 58, spd: 33, dmg: 10, xp: 3, spr: 'gbrute' }; EN.gshaman = { hp: 42, spd: 30, dmg: 8, xp: 3, spr: 'gshaman' };
+EN.wolf = { hp: 34, spd: 56, dmg: 7, xp: 2, spr: 'wolf' };
+EN.swampy.spr = 'mushn';
+EN.orc_shaman.shoot = 1; EN.necromancer.shoot = 1; EN.gshaman.shoot = 1; EN.wolf.zig = 1; EN.wogol.leap = 1; EN.chort.leap = 1; EN.imp.zig = 1; EN.goblin.zig = 1;
 EN.ogre.pats = ['dash', 'slam']; EN.big_zombie.pats = ['dash', 'slam', 'ring']; EN.big_demon.pats = ['ring', 'spiral', 'dash', 'slam'];
-EN.warchief.pats = ['dash', 'spray', 'slam']; EN.shaman.pats = ['ring', 'spray', 'slam']; EN.lich.pats = ['spiral', 'ring', 'spray']; EN.pumpking.pats = ['spray', 'slam', 'dash', 'spiral'];
+EN.warchief.pats = ['dash', 'spray', 'slam']; EN.shaman.pats = ['ring', 'spray', 'slam']; EN.lich.pats = ['spiral', 'ring', 'slam']; EN.pumpking.pats = ['dash', 'slam'];
+EN.troll.pats = ['dash', 'spray', 'slam']; EN.mushking.pats = ['ring', 'slam']; EN.golem.pats = ['slam', 'dash'];
 const RISE = new Set(['skelet', 'zombie', 'tiny_zombie', 'ice_zombie']);
 const WAVES = [
   ['tiny_zombie', 'goblin'], ['goblin', 'imp', 'tiny_zombie'], ['skelet', 'imp', 'tiny_slug'], ['skelet', 'zombie', 'muddy'],
-  ['zombie', 'swampy', 'muddy'], ['ice_zombie', 'masked_orc', 'skelet', 'orc_shaman'], ['masked_orc', 'orc_warrior', 'imp', 'orc_shaman'], ['orc_warrior', 'orc_shaman', 'masked_orc', 'necromancer'],
-  ['necromancer', 'wogol', 'ice_zombie'], ['wogol', 'chort', 'orc_warrior'], ['chort', 'pumpkin_dude', 'doc'], ['doc', 'slug', 'pumpkin_dude', 'chort']
+  ['zombie', 'swampy', 'muddy'], ['zombie', 'masked_orc', 'skelet', 'orc_shaman'], ['masked_orc', 'orc_warrior', 'imp', 'orc_shaman'], ['orc_warrior', 'orc_shaman', 'masked_orc', 'necromancer'],
+  ['necromancer', 'wogol', 'zombie'], ['wogol', 'chort', 'orc_warrior'], ['chort', 'pumpkin_dude', 'doc'], ['doc', 'slug', 'pumpkin_dude', 'chort']
 ];
 const BOSSES = [{ t: 195, type: 'ogre' }, { t: 390, type: 'big_zombie' }, { t: 540, type: 'big_demon', final: true }];
 const SWARMS = [120, 315, 465];
 const SEWER_WAVES = [
-  ['tiny_slug', 'tiny_zombie'], ['tiny_slug', 'goblin', 'muddy'], ['muddy', 'swampy', 'tiny_slug'], ['swampy', 'zombie', 'slug'],
-  ['zombie', 'ice_zombie', 'muddy'], ['ice_zombie', 'slug', 'swampy'], ['necromancer', 'swampy', 'slug'], ['necromancer', 'ice_zombie', 'muddy'],
-  ['slug', 'wogol', 'zombie'], ['doc', 'slug', 'necromancer'], ['doc', 'slug', 'wogol'], ['slug', 'doc', 'chort']
+  ['tiny_slug', 'mushs'], ['tiny_slug', 'muddy', 'mushs'], ['muddy', 'swampy', 'tiny_slug'], ['swampy', 'zombie', 'slug'],
+  ['zombie', 'mushs', 'muddy'], ['slug', 'swampy', 'mushs'], ['necromancer', 'swampy', 'slug'], ['necromancer', 'zombie', 'muddy'],
+  ['slug', 'doc', 'mushs'], ['doc', 'slug', 'necromancer'], ['doc', 'slug', 'swampy'], ['slug', 'doc', 'necromancer', 'swampy']
 ];
 const CAMP_WAVES = [
-  ['goblin', 'tiny_zombie'], ['goblin', 'masked_orc'], ['masked_orc', 'goblin', 'imp'], ['masked_orc', 'orc_warrior'],
-  ['orc_warrior', 'orc_shaman', 'goblin'], ['orc_warrior', 'masked_orc', 'wogol'], ['orc_shaman', 'orc_warrior', 'chort'], ['orc_warrior', 'wogol', 'masked_orc'],
-  ['wogol', 'orc_shaman', 'pumpkin_dude'], ['orc_warrior', 'doc', 'wogol'], ['doc', 'orc_warrior', 'chort'], ['doc', 'wogol', 'orc_warrior', 'pumpkin_dude']
+  ['gscout', 'wolf'], ['gscout', 'gbrute'], ['gbrute', 'gscout', 'wolf'], ['masked_orc', 'gbrute'],
+  ['orc_warrior', 'gshaman', 'gscout'], ['orc_warrior', 'gbrute', 'wolf'], ['gshaman', 'orc_warrior', 'gbrute'], ['orc_warrior', 'wolf', 'masked_orc'],
+  ['wolf', 'gshaman', 'gbrute'], ['orc_warrior', 'gshaman', 'wolf'], ['gbrute', 'orc_warrior', 'gshaman'], ['gbrute', 'wolf', 'orc_warrior', 'gshaman']
 ];
 const CRYPT_WAVES = [
-  ['tiny_zombie', 'skelet'], ['skelet', 'tiny_zombie', 'zombie'], ['skelet', 'zombie', 'ice_zombie'], ['ice_zombie', 'skelet', 'muddy'],
-  ['ice_zombie', 'zombie', 'necromancer'], ['necromancer', 'skelet', 'ice_zombie'], ['necromancer', 'ice_zombie', 'swampy'], ['necromancer', 'wogol', 'skelet'],
-  ['ice_zombie', 'necromancer', 'chort'], ['doc', 'necromancer', 'ice_zombie'], ['doc', 'slug', 'necromancer'], ['doc', 'necromancer', 'chort', 'ice_zombie']
+  ['tiny_zombie', 'skelet'], ['skelet', 'tiny_zombie', 'ice_zombie'], ['skelet', 'ice_zombie', 'necromancer'], ['ice_zombie', 'skelet', 'tiny_zombie'],
+  ['ice_zombie', 'necromancer', 'skelet'], ['necromancer', 'skelet', 'ice_zombie'], ['necromancer', 'ice_zombie', 'chort'], ['necromancer', 'wogol', 'skelet'],
+  ['ice_zombie', 'necromancer', 'chort'], ['doc', 'necromancer', 'ice_zombie'], ['doc', 'wogol', 'necromancer'], ['doc', 'necromancer', 'chort', 'ice_zombie']
 ];
 const HELL_WAVES = [
-  ['imp', 'goblin'], ['imp', 'skelet', 'chort'], ['imp', 'chort', 'masked_orc'], ['chort', 'orc_warrior', 'imp'],
-  ['chort', 'necromancer', 'pumpkin_dude'], ['wogol', 'chort', 'imp'], ['pumpkin_dude', 'chort', 'orc_warrior'], ['necromancer', 'wogol', 'chort'],
-  ['doc', 'chort', 'pumpkin_dude'], ['chort', 'pumpkin_dude', 'doc'], ['doc', 'slug', 'chort'], ['chort', 'doc', 'pumpkin_dude', 'wogol']
+  ['imp', 'chort'], ['imp', 'wogol', 'chort'], ['imp', 'chort', 'pumpkin_dude'], ['chort', 'wogol', 'imp'],
+  ['chort', 'pumpkin_dude', 'doc'], ['wogol', 'chort', 'imp'], ['pumpkin_dude', 'chort', 'wogol'], ['doc', 'wogol', 'chort'],
+  ['doc', 'chort', 'pumpkin_dude'], ['chort', 'pumpkin_dude', 'doc'], ['doc', 'wogol', 'chort'], ['chort', 'doc', 'pumpkin_dude', 'wogol']
 ];
 const STAGES = {
   keep: { waves: WAVES, bosses: BOSSES, hp: 1, gold: 1, spikes: 5, cycle: 3.6, tint: null, fount: ['red', 'blue'], floor: 0.86, cols: 4, decal: ['skull'], wall: 'keep', icon: 'ogre_idle_anim_f0' },
-  sewers: { waves: SEWER_WAVES, bosses: [{ t: 195, type: 'big_zombie' }, { t: 390, type: 'ogre' }, { t: 540, type: ['big_zombie', 'ogre'], final: true }], hp: 1.35, gold: 1.3, spikes: 8, cycle: 3.0, tint: '#b4dcbc', fount: ['blue'], floor: 0.7, cols: 0, decal: ['hole', 'skull', 'floor_ladder'], wall: 'sewers', need: 'keep', icon: 'big_zombie_idle_anim_f0' },
-  camp: { waves: CAMP_WAVES, bosses: [{ t: 195, type: 'warchief' }, { t: 390, type: 'shaman' }, { t: 540, type: ['warchief', 'ogre'], final: true }], hp: 1.6, gold: 1.55, spikes: 6, cycle: 3.2, tint: '#ecdfb0', fount: ['red'], floor: 0.8, cols: 3, decal: ['skull', 'hole'], wall: 'camp', need: 'sewers', icon: 'orc_warrior_idle_anim_f0', charge: true },
-  crypt: { waves: CRYPT_WAVES, bosses: [{ t: 195, type: 'big_zombie' }, { t: 390, type: 'lich' }, { t: 540, type: ['lich', 'big_zombie'], final: true }], hp: 1.9, gold: 1.85, spikes: 9, cycle: 2.8, tint: '#b6c6f4', fount: ['blue'], floor: 0.75, cols: 0, decal: ['skull', 'skull', 'skull'], wall: 'crypt', need: 'camp', icon: 'necromancer_anim_f0', rise: true, light: 0.78 },
-  hell: { waves: HELL_WAVES, bosses: [{ t: 195, type: 'pumpking' }, { t: 390, type: 'big_demon' }, { t: 540, type: ['big_demon', 'big_demon'], final: true }], hp: 2.3, gold: 2.2, spikes: 13, cycle: 2.5, tint: '#ffbcaa', fount: ['red'], floor: 0.8, cols: 4, decal: ['skull', 'skull', 'hole'], wall: 'hell', need: 'crypt', icon: 'big_demon_idle_anim_f0' }
+  sewers: { waves: SEWER_WAVES, bosses: [{ t: 195, type: 'troll' }, { t: 390, type: 'mushking' }, { t: 540, type: ['troll', 'mushking'], final: true }], hp: 1.35, gold: 1.3, spikes: 8, cycle: 3.0, tint: '#b4dcbc', fount: ['blue'], floor: 0.7, cols: 0, decal: ['hole', 'skull', 'floor_ladder'], wall: 'sewers', need: 'keep', icon: 'big_zombie_idle_anim_f0' },
+  camp: { waves: CAMP_WAVES, bosses: [{ t: 195, type: 'warchief' }, { t: 390, type: 'shaman' }, { t: 540, type: ['warchief', 'shaman'], final: true }], hp: 1.6, gold: 1.55, spikes: 6, cycle: 3.2, tint: '#ecdfb0', fount: ['red'], floor: 0.8, cols: 3, decal: ['skull', 'hole'], wall: 'camp', need: 'sewers', icon: 'orc_warrior_idle_anim_f0', charge: true },
+  crypt: { waves: CRYPT_WAVES, bosses: [{ t: 195, type: 'golem' }, { t: 390, type: 'lich' }, { t: 540, type: ['lich', 'golem'], final: true }], hp: 1.9, gold: 1.85, spikes: 9, cycle: 2.8, tint: '#b6c6f4', fount: ['blue'], floor: 0.75, cols: 0, decal: ['skull', 'skull', 'skull'], wall: 'crypt', need: 'camp', icon: 'necromancer_anim_f0', rise: true, light: 0.78 },
+  hell: { waves: HELL_WAVES, bosses: [{ t: 195, type: 'pumpking' }, { t: 390, type: 'big_demon' }, { t: 540, type: ['big_demon', 'pumpking'], final: true }], hp: 2.3, gold: 2.2, spikes: 13, cycle: 2.5, tint: '#ffbcaa', fount: ['red'], floor: 0.8, cols: 4, decal: ['skull', 'skull', 'hole'], wall: 'hell', need: 'crypt', icon: 'big_demon_idle_anim_f0' }
 };
 function upLines(id) {
   const lv = WP[id].lv, cur = Object.assign({}, lv[0]), out = [];
@@ -706,17 +715,17 @@ const SIGPW = { oath: 0.7, moonbow: 0.66, quake: 2.6, comet: 1.4, fang: 2.6, twi
 const HTIER = { knight: 0, elf: 1, dwarf: 2, wizard: 3, lizard: 4, maren: 5, hild: 6, faelan: 7, ysolde: 8, sska: 9 };
 const tierMul = h => 1 + 0.13 * (HTIER[h] || 0);
 // each class has its own arsenal and its own evolution partners
-const HKIT = {
-  knight: { oath: 'guard', sword: 'might', mace: 'vitality', spear: 'reach', hammers: 'pulse' },
-  elf: { moonbow: 'swift', bow: 'keen', knives: 'haste', spear: 'charm', cleaver: 'reach' },
-  dwarf: { quake: 'guard', axe: 'might', mace: 'reach', bombs: 'vitality', hammers: 'charm' },
-  wizard: { comet: 'tome', bombs: 'greed', staff: 'reach', hammers: 'haste', knives: 'charm' },
-  lizard: { fang: 'keen', spear: 'haste', bow: 'swift', katana: 'might', axe: 'pulse' },
-  maren: { twin: 'haste', knives: 'keen', katana: 'swift', sword: 'charm', cleaver: 'might' },
-  hild: { skyforge: 'vitality', hammers: 'might', mace: 'guard', axe: 'greed', bombs: 'reach' },
-  faelan: { gale: 'swift', cleaver: 'haste', bow: 'reach', knives: 'pulse', staff: 'charm' },
-  ysolde: { frost: 'tome', staff: 'keen', bombs: 'haste', hammers: 'reach', sword: 'pulse' },
-  sska: { shade: 'keen', katana: 'charm', cleaver: 'greed', spear: 'might', knives: 'swift' }
+const HKIT = { // signature + 3 class weapons; no two heroes share more than one class weapon
+  knight: { oath: 'guard', sword: 'might', mace: 'vitality', spear: 'reach' },
+  elf: { moonbow: 'swift', bow: 'keen', knives: 'haste', staff: 'charm' },
+  dwarf: { quake: 'guard', axe: 'might', hammers: 'charm', bombs: 'vitality' },
+  wizard: { comet: 'tome', staff: 'reach', bombs: 'greed', cleaver: 'haste' },
+  lizard: { fang: 'keen', spear: 'haste', bow: 'swift', katana: 'might' },
+  maren: { twin: 'haste', knives: 'keen', katana: 'swift', cleaver: 'might' },
+  hild: { skyforge: 'vitality', hammers: 'might', mace: 'guard', cleaver: 'greed' },
+  faelan: { gale: 'swift', bow: 'reach', axe: 'pulse', sword: 'charm' },
+  ysolde: { frost: 'tome', staff: 'keen', hammers: 'reach', spear: 'pulse' },
+  sska: { shade: 'keen', katana: 'charm', bombs: 'greed', mace: 'might' }
 };
 const pairOf = id => (HKIT[G.hero] && HKIT[G.hero][id]) || WP[id].pair;
 function wStats(w) {
@@ -1182,8 +1191,13 @@ const EK = [null, null,
   { spr: 'weapon_baton_with_spikes', spin: 11 },         // 6 rotting giant: bone clubs
   { spr: 'flask_big_yellow', spin: 7, lob: 1 },          // 7 elder shaman
   { spr: 'flask_big_blue', spin: 6, lob: 1, chill: 1 },  // 8 lich: frost flask, slows on hit
-  { spr: 'bomb_f0', spin: 8 }];                          // 9 pumpkin king
-const BKIND = { ogre: 5, big_zombie: 6, big_demon: 0, warchief: 4, shaman: 7, lich: 8, pumpking: 9 };
+  { spr: 'bomb_f0', spin: 8 },                           // 9 (unused)
+  { spr: 'flask_purple', spin: 8, lob: 1 },              // 10 gnoll shaman
+  { spr: 'weapon_mace', spin: 12 },                      // 11 troll
+  { spr: 'flask_beige', spin: 7, lob: 1, pool: 1 },      // 12 mushroom king: spore puddles
+  { spr: 'flask_big_purple', spin: 6, lob: 1 },          // 13 old archmage
+  { spr: 'flask_big_lime', spin: 6, lob: 1, pool: 1 }];  // 14 withered treant: sap
+const BKIND = { ogre: 5, big_zombie: 6, big_demon: 0, warchief: 4, shaman: 13, lich: 14, troll: 11, mushking: 12 };
 function eShot(x, y, a, spd, dmg, c, life) { if (G.eshots.length > 280) return; G.eshots.push({ x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd, dmg, c: c || 0, t: 0, life: life || 6 }); }
 function bossAct(e, ux, uy) {
   const k = e.patk || 'dash';
@@ -1905,7 +1919,7 @@ function update(dt) {
     if (e.slowT > 0) { e.slowT -= dt; sp *= 1 - (e.slow || 0); }
     if (G.bloodT > 0) sp *= 1.25;
     const BH = EN[e.type];
-    if (BH.shoot && !e.boss) { if (e.shT == null) e.shT = rnd(1.5, 3.5); e.shT -= dt; if (e.shT <= 0 && d < 165 && !((G.castCd || 0) > G.t)) { G.castCd = G.t + 0.45; e.shT = rnd(4.0, 5.6); if (e.type === 'orc_shaman') eShot(e.x, e.y - e.h * e.sc / 2, Math.atan2(dy, dx), 80, e.dmg * 0.5, 3, clamp(d / 80, 0.6, 2.2)); else eShot(e.x, e.y - e.h * e.sc / 2, Math.atan2(dy, dx), 60, e.dmg * 0.6, 2, 5); e.flash = 0.12; } if (e.shT > 2.9) sp *= 0.25; }
+    if (BH.shoot && !e.boss) { if (e.shT == null) e.shT = rnd(1.5, 3.5); e.shT -= dt; if (e.shT <= 0 && d < 165 && !((G.castCd || 0) > G.t)) { G.castCd = G.t + 0.45; e.shT = rnd(4.0, 5.6); if (e.type === 'gshaman') eShot(e.x, e.y - e.h * e.sc / 2, Math.atan2(dy, dx), 76, e.dmg * 0.5, 10, clamp(d / 76, 0.6, 2.2)); else if (e.type === 'orc_shaman') eShot(e.x, e.y - e.h * e.sc / 2, Math.atan2(dy, dx), 80, e.dmg * 0.5, 3, clamp(d / 80, 0.6, 2.2)); else eShot(e.x, e.y - e.h * e.sc / 2, Math.atan2(dy, dx), 60, e.dmg * 0.6, 2, 5); e.flash = 0.12; } if (e.shT > 2.9) sp *= 0.25; }
     if (BH.leap && !e.boss) { if (e.lpT == null) e.lpT = rnd(2, 4); e.lpT -= dt; if (e.lp > 0) { e.lp -= dt; sp *= 3.3; } else if (e.lpT <= 0 && d < 130) { e.lpT = rnd(3, 5); e.lp = 0.32; } else if (e.lpT < 0.35) { sp *= 0.1; e.flash = Math.max(e.flash, ((e.lpT * 20) | 0) % 2 ? 0.04 : 0); } }
     if (BH.flee) { e.life = (e.life || 16) - dt; if (e.life <= 0) { e.hp = 0; continue; } }
     if (e.bounty) { e.bounty -= dt; if (e.bounty <= 0) { e.bounty = 0; e.elite = false; e.gone = true; e.hp = 0; banner(T('bountyLost')); continue; } }

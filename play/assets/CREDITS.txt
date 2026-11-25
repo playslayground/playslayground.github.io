@@ -7,3 +7,6 @@ Font: Galmuri by Lee Minseo — SIL Open Font License 1.1 (see fonts/OFL.txt)
 
 Additional characters: "16x16 Enchanted Forest Characters" by Superdark - https://superdark.itch.io/enchanted-forest-characters (free for commercial use)
 Additional items: "Dungeon Tileset II Extended" by Niji (nijikokun) - https://nijikokun.itch.io/dungeontileset-ii-extended (CC0)
+
+Kyrise's Free 16x16 RPG Icon Pack - Kyrise - https://kyrise.itch.io/kyrises-free-16x16-rpg-icon-pack - CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+16x16 Assorted RPG Icons - Shade - https://opengameart.org/content/16x16-assorted-rpg-icons - CC0
